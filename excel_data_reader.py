@@ -2,6 +2,7 @@ from sklearn.utils import shuffle
 from pandas import get_dummies
 import openpyxl
 import numpy as np
+import os
 
 class MRI_chosun_data():
     def __init__(self):
@@ -299,8 +300,21 @@ def valence_class(data, label, class_num):
     return np.array(new_data), np.array(new_label)
 
 def normalize_col(X_, axis=0):
+    """
+    if minimun is negative float, then we should divide with min + max
+    :param X_:
+    :param axis:
+    :return:
+    """
+    print("normalize step")
+    # print(X_[:2])
+    # print(np.amax(X_[:2],axis=axis))
     assert len(np.amax(X_,axis=axis)) == len(X_[0])
     assert np.all(np.amax(X_,axis=axis) != 0)
+    # print(np.amin(X_,axis=axis)[41])
+    # print(np.amax(X_, axis=axis)[41])
+    # print(((X_-np.amin(X_,axis=axis))/np.amax(X_, axis=axis))[0,41])
+    X_ = X_-np.amin(X_,axis=axis)
     return (X_-np.amin(X_,axis=axis))/np.amax(X_, axis=axis)
 
 def column(matrix, i, num):
@@ -428,7 +442,6 @@ def over_sampling(X_imb, Y_imb, sampling_option):
                 Y_samp = Y_samp + separate_label[c]*scale
         X_samp =np.array(X_samp)
         Y_samp = np.array(Y_samp)
-
     elif sampling_option == 'None':
         X_samp, Y_samp = X_imb, Y_imb
     else:
@@ -445,29 +458,50 @@ def over_sampling(X_imb, Y_imb, sampling_option):
     print('over sampling from {:5} -> {:5}.'.format(imbalance_num, balance_num))
     return X_samp, Y_samp
 
-if __name__ == '__main__':
-    # a = np.array([[1,2],[3,4]])
-    # print(a[:,0])
+def EWHA_excel_datareader():
+    base_folder_path = '/home/soopil/Desktop/Dataset/brain_ewha'# desktop setting
+    train_path = os.path.join(base_folder_path, 'Train_Meningioma_20180508.xlsx')
+    test_path = os.path.join(base_folder_path, 'Test_Meningioma_20180508.xlsx')
+    xl = openpyxl.load_workbook(train_path, read_only=True)
+    ws = xl['20171108_New_N4ITK corrected']
+    data_excel = []
+    for row in ws.rows:
+        line = []
+        for cell in row:
+            line.append(cell.value)
+        data_excel.append(line)
+    data_excel = np.array(data_excel)
+    train_x = data_excel[1:, 4:102]
+    train_y = data_excel[1:, 2]
+    # for i,line in enumerate(train_x):
+    #     print(i, np.where(line == 0))
+    train_x = np.delete(train_x, 109, 0)
+    train_y = np.delete(train_y, 109, 0)
+    train_x = normalize_col(train_x, axis=0)
+    # for line in train_x:
+    #     print(np.where(line>1))
     # assert False
+    xl = openpyxl.load_workbook(test_path, read_only=True)
+    ws = xl['Sheet1']
+    data_excel = []
+    for row in ws.rows:
+        line = []
+        for cell in row:
+            line.append(cell.value)
+        data_excel.append(line)
+    data_excel = np.array(data_excel)
 
-    base_folder_path = '/home/sp/Datasets/MRI_chosun/ADAI_MRI_Result_V1_0_processed'# desktop setting
-    # base_folder_path = '/home/sp/Datasets/MRI_chosun/test_sample_2'
-    excel_path = '/home/sp/Datasets/MRI_chosun/ADAI_MRI_test.xlsx'
-    # "clinic" or "new" or "PET"
-    # 'PET pos vs neg', 'NC vs MCI vs AD' 'NC vs mAD vs aAD vs ADD'
-    # diag_type = "PET"
-    # class_option = 'PET pos vs neg'
-    diag_type = "clinic"
-    class_option = 'CN vs AD'  # 'aAD vs ADD'#'NC vs ADD'#'NC vs mAD vs aAD vs ADD'
-    # diag_type = "clinic"
-    # class_option = 'MCI vs AD'#'MCI vs AD'#'CN vs MCI'#'CN vs AD' #'CN vs MCI vs AD'
-    excel_option = 'merge'
-    test_num = 10
-    fold_num = 5
-    is_split_by_num = False
-    NN_dataloader(diag_type, class_option, excel_path,
-                  excel_option, test_num, fold_num, is_split_by_num)
-'''
-<<numpy array column api>> 
-self.data_excel[:,0]
-'''
+    test_x = data_excel[1:, 4:102]
+    test_y = data_excel[1:, 2]
+    # for i,line in enumerate(test_x):
+    #     print(i, np.where(line == 0))
+    test_x = np.delete(test_x, 59, 0)
+    test_x = normalize_col(test_x, axis=0)
+    test_y = np.delete(test_y, 59, 0)
+
+    print(train_x.shape,train_y.shape, test_x.shape,test_y.shape)
+    # assert False
+    return train_x, train_y, test_x, test_y
+
+if __name__ == '__main__':
+    EWHA_excel_datareader()

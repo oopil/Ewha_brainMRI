@@ -7,13 +7,10 @@ from sklearn.utils import shuffle
 # from ConvNeuralNet.CNN_net import *
 
 sys.path.append('..')
-sys.path.append('/home/soopil/Desktop/Dataset/github/brainMRI_classification/ConvNeuralNet')
-from excel_data_reader import *
-
+# sys.path.append('/home/soopil/Desktop/Dataset/github/brainMRI_classification/ConvNeuralNet')
 # server setting
-from CNN_data import *
-from CNN_ops import *
-from CNN_net import *
+from excel_data_reader import *
+from NN_net import *
 
 # %%
 def parse_args() -> argparse:
@@ -29,11 +26,11 @@ def parse_args() -> argparse:
     parser.add_argument('--setting',            default='desktop', type=str) # desktop sv186 sv202 sv144
     parser.add_argument('--mask',               default=False, type=str2bool)
     parser.add_argument('--buffer_scale',       default=30, type=int)
-    parser.add_argument('--epoch',              default=400, type=int)
+    parser.add_argument('--epoch',              default=3, type=int)
     parser.add_argument('--network',            default='simple', type=str) # simple attention siam
-    parser.add_argument('--lr',                 default=1e-5, type=float) # simple attention siam
-    parser.add_argument('--ch',                 default=32, type=int) # simple attention siam
-    parser.add_argument('--fold_try',           default=2, type=int)
+    parser.add_argument('--lr',                 default=0.000000000000000000000000000000001, type=float)
+    parser.add_argument('--ch',                 default=32, type=int)
+    parser.add_argument('--fold_try',           default=1, type=int)
     parser.add_argument('--batch_size',         default=10, type=int)
     return parser.parse_args()
 
@@ -49,86 +46,42 @@ sv_set_dict = {
 }
 sv_set = sv_set_dict[args.setting]
 
-def read_cnn_data(sv_set = 0):
-    base_folder_path = ''
-    excel_path = ''
-    if sv_set == 186:
-        base_folder_path = '/home/public/Dataset/MRI_chosun/ADAI_MRI_Result_V1_0_empty_copy'
-        excel_path = '/home/public/Dataset/MRI_chosun/ADAI_MRI_test.xlsx'
-    elif sv_set == 0: # desktop
-        base_folder_path = '/home/soopil/Desktop/Dataset/MRI_chosun/ADAI_MRI_Result_V1_0_processed'
-        excel_path = '/home/soopil/Desktop/Dataset/MRI_chosun/ADAI_MRI_test.xlsx'
-    elif sv_set == 202:
-        base_folder_path = '/home/soopil/Datasets/MRI_chosun/ADAI_MRI_Result_V1_0_processed'
-        excel_path = '/home/soopil/Datasets/MRI_chosun/ADAI_MRI_test.xlsx'
-    else:
-        assert False
-
-    diag_type = 'clinic'
-    class_option = 'CN vs AD'
-    class_num = 2
-    test_num = 20
-    fold_num = 5
-    is_split_by_num = False
-    sampling_option = "RANDOM"
-    whole_set = CNN_dataloader(base_folder_path, diag_type, class_option, excel_path, fold_num)
-    return whole_set
-    # print(train_data)
-    # print(type(train_data))
-
-
 ch = args.ch
 batch = args.batch_size # 10
 dropout_prob = 0.5
 epochs = args.epoch
 is_mask = args.mask
-print_freq = 5
+print_freq = 1
 learning_rate = args.lr
-'''
-    model building parts
-'''
+
 class_num = 2
-patch_size = 48
-# patch_size = 16
-patch_num = 2 # hippocampus labels
-# patch_num = 70 # cortical labels
-# patch_num = 2 + 32 + 32 # hippo + cortical labels
-# patch_num = 34 #2 + 32 + 32 # hippo + cortical labels
-# patch_num = 20 # subcortical labels
-s1, s2, s3 = patch_size, patch_size, patch_size
-images = tf.placeholder(tf.float32, (None, s1 * patch_num, s2, s3, 1), name='inputs')
-# lh, rh = tf.split(images, [patch_size, patch_size], 1)
-y_gt = tf.placeholder(tf.float32, (None, 2))
+train_x, train_y, test_x, test_y = EWHA_excel_datareader()
+sampling_option = "SIMPLE"
+train_x, train_y = over_sampling(train_x, train_y, sampling_option)
+test_x, test_y = valence_class(test_x, test_y, class_num)
+train_y = one_hot_pd(train_y)
+test_y = one_hot_pd(test_y)
+shape = train_x.shape
+print(shape)
+print(train_y, test_y)
+# for line in test_x:
+#     print(line)
+# assert False
+'''
+model building parts
+'''
+
+class_num = 2
+images = tf.placeholder(tf.float32, (None, shape[1]), name='inputs')
+y_gt = tf.placeholder(tf.float32, (None, class_num))
 keep_prob = tf.placeholder(tf.float32)
-
-network = None
-if args.network == 'simple':
-    network = Simple
-elif args.network == 'siam':
-    network = Siamese
-elif args.network == 'attention':
-    network = Attention
-else:
-    assert False
-assert network != None
-
-# patch_num = 2
-
-my_model = network(weight_initializer=tf.truncated_normal_initializer,
-                  activation=tf.nn.relu,
-                  class_num=class_num,
-                  patch_size=s1,
-                  patch_num=patch_num)
+my_model = SimpleNet(tf.truncated_normal_initializer(mean=0, stddev=0.1), tf.nn.relu, class_num)
 y = my_model.model(images)
 # %%
-cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(labels=y_gt, logits=y)
+# cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(labels=y_gt, logits=y)
+cross_entropy = tf.squared_difference(y_gt, y)
 loss = tf.reduce_mean(cross_entropy)
 
-# with tf.name_scope('learning_rate_decay'):
-#     start_lr = learning_rate
-#     global_step = tf.Variable(0, trainable=False)
-#     total_learning = epochs
-#     lr = tf.train.exponential_decay(start_lr, global_step, total_learning, 0.99999, staircase=True)
 with tf.name_scope('learning_rate_decay'):
     start_lr = learning_rate
     global_step = tf.Variable(0, trainable=False)
@@ -137,10 +90,60 @@ with tf.name_scope('learning_rate_decay'):
     lr = tf.train.exponential_decay(start_lr, global_step, decay_steps=epochs // 100, decay_rate=.96, staircase=True)
 
 with tf.variable_scope('optimizer'):
-    optimizer = tf.train.AdamOptimizer(lr)
+    # optimizer = tf.train.AdamOptimizer(lr)
+    optimizer = tf.train.GradientDescentOptimizer(lr)
     train_step = optimizer.minimize(loss)
     correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_gt, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+tf.summary.scalar("loss", loss)
+tf.summary.scalar("accuracy", accuracy)
+merged_summary = tf.summary.merge_all()
+model_vars = tf.trainable_variables()
+tf.contrib.slim.model_analyzer.analyze_vars(model_vars, print_info=True)
+
+train_accur = []
+valid_accur = []
+init = tf.global_variables_initializer()
+with tf.Session() as sess:
+    sess.run(init)
+    train_writer = tf.summary.FileWriter('../log/train', sess.graph)
+    test_writer = tf.summary.FileWriter('../log/test')
+
+    for epoch in range(epochs):
+        train_feed_dict = {
+            images: train_x,
+            y_gt: train_y
+        }
+        test_feed_dict = {
+            images: test_x,
+            y_gt: test_y
+        }
+        accum_loss = 0
+        accum_acc = 0
+
+        _, loss_scr, acc_scr, logit, train_summary = \
+            sess.run((train_step, loss, accuracy, y, merged_summary), feed_dict=train_feed_dict)
+
+        train_writer.add_summary(train_summary)
+        if epoch % print_freq == 0:
+            print("Epoch: {}/{}".format(epoch, epochs))
+            print("Train loss = {}".format(loss_scr))
+            print("Train accuracy = {:03.4f}".format(acc_scr // 0.01))
+
+            val_acc, val_logit, test_summary = \
+                sess.run((accuracy, y, merged_summary), feed_dict=test_feed_dict)
+
+            print("Validation accuracy = {:03.4f}".format(val_acc // 0.01))
+            print(logit[:5])
+            print(train_y[:5])
+            # print(val_logit[:5])
+            train_writer.add_summary(test_summary)
+            train_accur.append(acc_scr)
+            valid_accur.append(val_acc)
+
+assert False
+
 # Summarize
 tf.summary.scalar("loss", loss)
 tf.summary.scalar("accuracy", accuracy)
@@ -167,21 +170,21 @@ for fold in whole_set:
     # sampling_option = "None"
     # sampling_option = "RANDOM"
     sampling_option = "SIMPLE"
-    train_data, train_label, val_data, val_label = fold
-    val_data, val_label = valence_class(val_data, val_label, class_num)
+    train_x, train_y, test_x, test_y = fold
+    test_x, test_y = valence_class(test_x, test_y, class_num)
     if sampling_option != "None":
-        train_data, train_label = over_sampling(train_data, train_label, sampling_option)
-        train_label = one_hot_pd(train_label)
+        train_x, train_y = over_sampling(train_x, train_y, sampling_option)
+        train_y = one_hot_pd(train_y)
 
     print()
     print("Loading data...")
     print()
     print()
-    print("train data: {}".format(train_data.shape))
-    print("train label: {}".format(train_label.shape))
+    print("train data: {}".format(train_x.shape))
+    print("train label: {}".format(train_y.shape))
     print()
-    print("validation data: {}".format(val_data.shape))
-    print("validation label: {}".format(val_label.shape))
+    print("validation data: {}".format(test_x.shape))
+    print("validation label: {}".format(test_y.shape))
     print()
     # saver = tf.train.Saver(max_to_keep=0)
     init = tf.global_variables_initializer()
@@ -191,14 +194,14 @@ for fold in whole_set:
         print('Cross Validation Step ... ')
         print()
         # tensorflow dataset setting
-        next_element, iterator = get_patch_dataset(train_data, train_label, args.buffer_scale, is_mask, batch)
+        next_element, iterator = get_patch_dataset(train_x, train_y, args.buffer_scale, is_mask, batch)
         sess.run(iterator.initializer)
 
-        # test_element, test_iterator = get_patch_dataset(val_data, val_label, args.buffer_scale, is_mask, len(val_label))
+        # test_element, test_iterator = get_patch_dataset(test_x, test_y, args.buffer_scale, is_mask, len(test_y))
         # sess.run(test_iterator.initializer)
         # val_data_ts, test_label_ts = sess.run(test_element)
-        val_data_ts, test_label_ts = read_test_data(val_data, val_label, is_masking=is_mask)
-        test_label_ts = one_hot_pd(val_label)
+        val_data_ts, test_label_ts = read_test_data(test_x, test_y, is_masking=is_mask)
+        test_label_ts = one_hot_pd(test_y)
         # print(test_label_ts)
         print(test_label_ts.shape)
 
@@ -206,15 +209,15 @@ for fold in whole_set:
         test_writer = tf.summary.FileWriter('../log/test')
 
         for epoch in range(epochs):
-            train_data, train_label = sess.run(next_element)
-            # print(train_data.shape, train_label.shape)
-            # train_data, train_label = over_sampling(train_data, train_label, "RANDOM")
-            # print(train_data.shape, train_label.shape)
+            train_x, train_y = sess.run(next_element)
+            # print(train_x.shape, train_y.shape)
+            # train_x, train_y = over_sampling(train_x, train_y, "RANDOM")
+            # print(train_x.shape, train_y.shape)
             # assert False
 
             train_feed_dict = {
-                images: train_data,
-                y_gt: train_label
+                images: train_x,
+                y_gt: train_y
             }
             test_feed_dict = {
                 images: val_data_ts,
@@ -253,6 +256,7 @@ for fold in whole_set:
     top_valid_accur_list.append(top_valid_accur)
     saturation_train_accur_list.append(np.mean(train_accur[-saturation_count:]))
     saturation_valid_accur_list.append(np.mean(valid_accur[-saturation_count:]))
+
     count += 1
     if count >= args.fold_try:
         break
