@@ -2,11 +2,17 @@ import os
 import argparse
 import datetime
 import subprocess
+import numpy as np
+import pandas as pd
+import seaborn as sns
 from excel_data_reader import *
 from FD_data import FD_dataloader
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier, BaggingClassifier
 from sklearn import preprocessing
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from sklearn.tree import DecisionTreeClassifier
 
 def dataloader():
     class_num = 2
@@ -14,15 +20,23 @@ def dataloader():
     sampling_option = "SIMPLE"
     train_x, train_y = over_sampling(train_x, train_y, sampling_option)
     test_x, test_y = valence_class(test_x, test_y, class_num)
+    # train_y = np.array(train_y)
     return train_x, train_y, test_x, test_y
 
+def visualize(train_x, train_y):
+    data = pd.DataFrame(
+        {
+            '1': train_x[:, 0],
+            '2': train_x[:, 1],
+            '3': train_x[:, 2],
+            '4': train_x[:, 3],
+            'class': train_y
+        }
+    )
+    sns.pairplot(data, hue='class')
 
-def svm():
-    print('implement support vector machine ... ')
-    train_x, train_y, test_x, test_y = dataloader()
-    clf = SVC(gamma='auto')
-    clf.fit(train_x, train_y)
-    Pred = clf.predict(train_x)
+def check_result(model, train_x, train_y, test_x, test_y):
+    Pred = model.predict(train_x)
     print('label\t:', train_y)
     print('predict :', Pred)
     total_num = len(train_y)
@@ -34,7 +48,7 @@ def svm():
     train_accur = correct_answer * 100 / total_num
     # print('the probability is {}'.format(train_accur))
 
-    Pred = clf.predict(test_x)
+    Pred = model.predict(test_x)
     print('label\t:', test_y)
     print('predict :', Pred)
     total_num = len(test_y)
@@ -48,42 +62,59 @@ def svm():
     print('the train accuracy is {}'.format(train_accur))
     print('the test accuracy is {}'.format(test_accur))
 
-def logistic():
-    print('implement logistic regression classifier ... ')
+    print(confusion_matrix(test_y, Pred))
+    print(classification_report(test_y, Pred))
+    print(accuracy_score(test_y, Pred))
 
-    train_x, train_y, test_x, test_y = dataloader()
+def voting_classifier(train_x, train_y, test_x, test_y):
+    rf = RandomForestClassifier(n_estimators=2000, random_state=0)
+    svm = SVC(gamma='auto', kernel='linear', random_state=0)
+    logreg = LogisticRegression(solver='lbfgs', random_state=0)
+    voting_clf = VotingClassifier(estimators=[('lr', logreg), ('rf', rf), ('svc', svm)],
+                                  voting='hard')
+    voting_clf.fit(train_x, train_y)
+    for clf in (logreg, rf, svm, voting_clf):
+        clf.fit(train_x, train_y)
+        pred = clf.predict(test_x)
+        print(clf.__class__.__name__, accuracy_score(test_y, pred))
+    return voting_clf
+
+def bagging(train_x, train_y):
+    print('<< implement bagging classifier... >>')
+    bag_clf = BaggingClassifier(
+        DecisionTreeClassifier(random_state=0), n_estimators=1000,
+        max_samples=50, bootstrap=True, n_jobs=-1, random_state=0)
+    bag_clf.fit(train_x, train_y)
+    return bag_clf
+
+def random_forest(train_x, train_y):
+    print('<< implement random forest classifier... >>')
+    rf = RandomForestClassifier(n_estimators=1000, random_state=123456)
+    rf.fit(train_x, train_y)
+    return rf
+
+def svm(train_x, train_y):
+    print('<< implement support vector machine ... >>')
+    svm = SVC(gamma='auto', kernel='linear')
+    svm.fit(train_x, train_y)
+    return svm
+
+def logistic(train_x, train_y):
+    print('<< implement logistic regression classifier ... >>')
     logreg = LogisticRegression(solver='lbfgs')
     logreg.fit(train_x, train_y)
-
-    Pred = logreg.predict(train_x)
-    print('label\t:', train_y)
-    print('predict :', Pred)
-    total_num = len(train_y)
-    correct_answer = 0
-    for i in range(total_num):
-        if train_y[i] == Pred[i]:
-            correct_answer += 1
-
-    train_accur = correct_answer * 100 / total_num
-    # print('the probability is {}'.format(train_accur))
-
-    Pred = logreg.predict(test_x)
-    print('label\t:', test_y)
-    print('predict :', Pred)
-    total_num = len(test_y)
-    correct_answer = 0
-    for i in range(total_num):
-        if test_y[i] == Pred[i]:
-            correct_answer += 1
-    # print('the probability is {}'.format(test_accur))
-
-    test_accur = correct_answer * 100 / total_num
-    print('the train accuracy is {}'.format(train_accur))
-    print('the test accuracy is {}'.format(test_accur))
+    return logreg
 
 def main():
-    svm()
-    # logistic()
+    train_x, train_y, test_x, test_y = dataloader()
+    # visualize(train_x, train_y)
+    # assert False
+    # model = voting_classifier(train_x, train_y, test_x, test_y)
+    model = bagging(train_x, train_y)
+    # model = random_forest(train_x, train_y)
+    # model = svm(train_x, train_y)
+    # model = logistic(train_x, train_y)
+    check_result(model, train_x, train_y, test_x, test_y)
 
 def print_result_file(result_file_name):
     file = open(result_file_name, 'rt')

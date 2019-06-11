@@ -1,1 +1,7 @@
 pynrrd
+openpyxl
+sklearn
+imblearn
+matplotlib
+seaborn
+pandas
