@@ -271,7 +271,7 @@ class MRI_chosun_data():
 
 #%%
 def one_hot_pd(label):
-    return get_dummies(label)
+    return np.array(get_dummies(label))
 
 def shuffle_static(arr1, arr2):
     return shuffle(arr1, arr2, random_state=0)
@@ -477,7 +477,6 @@ def EWHA_excel_datareader():
     #     print(i, np.where(line == 0))
     train_x = np.delete(train_x, 109, 0)
     train_y = np.delete(train_y, 109, 0)
-    train_x = normalize_col(train_x, axis=0)
     # for line in train_x:
     #     print(np.where(line>1))
     # assert False
@@ -496,8 +495,12 @@ def EWHA_excel_datareader():
     # for i,line in enumerate(test_x):
     #     print(i, np.where(line == 0))
     test_x = np.delete(test_x, 59, 0)
-    test_x = normalize_col(test_x, axis=0)
     test_y = np.delete(test_y, 59, 0)
+
+    is_norm = True
+    if is_norm:
+        train_x = normalize_col(train_x, axis=0)
+        test_x = normalize_col(test_x, axis=0)
 
     print(train_x.shape,train_y.shape, test_x.shape,test_y.shape)
     # assert False
