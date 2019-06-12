@@ -2,6 +2,7 @@
 run this code by python3.5 not in anaconda environment
 because i have to use matlab engine, the interpreter language must be connect to my desktop.
 
+this code use matlab engine
 ex)
 >> python3.5 fractal_dimension.py
 """

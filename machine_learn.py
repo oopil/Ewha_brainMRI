@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from excel_data_reader import *
-from FD_data import FD_dataloader
+from FD_data import FD_dataloader, Lac_dataloader
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier, BaggingClassifier
@@ -20,8 +20,8 @@ def dataloader():
     sampling_option = "SIMPLE"
     train_x, train_y = over_sampling(train_x, train_y, sampling_option)
     test_x, test_y = valence_class(test_x, test_y, class_num)
-    # train_y = np.array(train_y)
-    return train_x, train_y, test_x, test_y
+    train_x, train_y = np.array(train_x), np.array(train_y.astype(np.int32))
+    return train_x, train_y.astype(np.int32), test_x, test_y.astype(np.int32)
 
 def visualize(train_x, train_y):
     data = pd.DataFrame(
@@ -105,14 +105,17 @@ def logistic(train_x, train_y):
     logreg.fit(train_x, train_y)
     return logreg
 
+def Lac_logistic():
+    pass
+
 def main():
     train_x, train_y, test_x, test_y = dataloader()
     # visualize(train_x, train_y)
     # assert False
     # model = voting_classifier(train_x, train_y, test_x, test_y)
-    model = bagging(train_x, train_y)
+    # model = bagging(train_x, train_y)
     # model = random_forest(train_x, train_y)
-    # model = svm(train_x, train_y)
+    model = svm(train_x, train_y)
     # model = logistic(train_x, train_y)
     check_result(model, train_x, train_y, test_x, test_y)
 
