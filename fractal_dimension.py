@@ -11,7 +11,7 @@ import os
 import matlab.engine as Matlab
 file_name = "/home/soopil/Desktop/Dataset/brain_ewha/Meningioma_only_T1C_masks/1550930_CE-label.nrrd"
 dir_path =  "/home/soopil/Desktop/Dataset/brain_ewha/Meningioma_only_T1C_masks/"
-fd_result_file = "./fd_result_file.txt"
+fd_result_file = "./fd_result/fd_result_file.txt"
 file_list = os.listdir(dir_path)
 print(len(file_list))
 

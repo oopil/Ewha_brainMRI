@@ -1,7 +1,3 @@
-import os
-import argparse
-import datetime
-import subprocess
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -10,9 +6,10 @@ from FD_data import FD_dataloader, Lac_dataloader
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier, BaggingClassifier
-from sklearn import preprocessing
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.tree import DecisionTreeClassifier
+from sklearn import preprocessing
+from sklearn.model_selection import train_test_split
 
 def dataloader():
     class_num = 2
@@ -105,10 +102,31 @@ def logistic(train_x, train_y):
     logreg.fit(train_x, train_y)
     return logreg
 
-def Lac_logistic():
+def Lac_logistic_classification():
+    '''
+    train with the lacunarity fractal dimension ...
+    :return:
+    '''
+    data, label = Lac_dataloader()
+    # print(data)
+    # print(label)
+    train_x, test_x, train_y, test_y = train_test_split(data,label, test_size=0.2, random_state=0)
+    train_x = np.array(train_x)
+    print(np.shape(train_x), np.shape(train_y), np.shape(test_x), np.shape(test_y))
+    class_num = 2
+    sampling_option = "SIMPLE"
+    train_x, train_y = over_sampling(train_x, train_y, sampling_option)
+    test_x, test_y = valence_class(test_x, test_y, class_num)
+    model = logistic(train_x, train_y)
+    check_result(model, train_x, train_y, test_x, test_y)
     pass
 
-def main():
+def excel_classification():
+    '''
+    train the machine learning technique like logistic regression, support vector machine, etc...
+    with the excel data from EWHA
+    :return:
+    '''
     train_x, train_y, test_x, test_y = dataloader()
     # visualize(train_x, train_y)
     # assert False
@@ -127,4 +145,5 @@ def print_result_file(result_file_name):
     file.close()
 
 if __name__ == '__main__':
-    main()
+    Lac_logistic_classification()
+    # excel_classification()

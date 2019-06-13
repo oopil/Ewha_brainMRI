@@ -88,7 +88,7 @@ def Lac_dataloader():
     print(np.shape(low_subj_list))
     print(np.shape(high_subj_list))
     print(type(high_subj_list))
-    result_file_name = 'Lac_result.txt'
+    result_file_name = './fd_result/Lac_result_v2.txt' # Lac_result_v2.txt
     fd = open(result_file_name, 'r')
     contents = fd.readlines()[1:]
     # print(contents)
@@ -105,11 +105,11 @@ def Lac_dataloader():
         print(e)
     # assert False
     fdim_list = np.array(fdim_list)
-    l_c, h_c, max_c = 0, 0, 200
+    l_c, h_c, max_c = 0, 0, 100
     for i, e in enumerate(fdim_list):
         sample = e
         subj_name = int(e[0])
-        n = np.array(sample[1])[:4].astype(np.float32)
+        n = np.array(sample[1])[:5].astype(np.float32)
         length = len(n)
         r = np.array([2 ** i for i in range(0, length)]).astype(np.float32)
         # print(n)
@@ -126,13 +126,13 @@ def Lac_dataloader():
             print('low list')
             # low_fdim.append(length)
             low_fdim.append(n)
-            plt.plot(np.log(r), n, '-bo')
+            plt.plot(np.log(r), np.log(n), '-bo')
             l_c += 1
         elif subj_name in high_subj_list and h_c < max_c:
             print('high list')
             # high_fdim.append(length)
             high_fdim.append(n)
-            plt.plot(np.log(r), n, '-ro')
+            plt.plot(np.log(r), np.log(n), '-ro')
             h_c += 1
     label_high = [1 for _ in range(h_c)]
     label_low = [0 for _ in range(l_c)]

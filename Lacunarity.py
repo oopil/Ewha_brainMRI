@@ -49,7 +49,7 @@ def lacunarity(data):
     print('<< compute lacunarity >>')
     bs_list = [2**i for i in range(1, 10)]
     box_count = np.zeros_like(bs_list)
-    Lac = []
+    lac = []
     cnt = []
     print(shape)
     print(bs_list)
@@ -65,21 +65,17 @@ def lacunarity(data):
 
     for bs in bs_list:
         buf_mean, buf_var, buf_lambda = lacun_own(data, bs, shape)
-        Lac.append(np.mean(buf_lambda))
+        lac.append(np.mean(buf_lambda))
         # print(buf_lambda)
         # print(np.mean(buf_lambda))
     # print(cnt)
-    print(Lac)
-    return Lac
+    print(lac)
+    return lac
 
 if __name__ == "__main__":
     filename = "/home/soopil/Desktop/Dataset/brain_ewha/Meningioma_only_T1C_masks/1550930_CE-label.nrrd"
     dir_path = "/home/soopil/Desktop/Dataset/brain_ewha/Meningioma_only_T1C_masks/"
     # 8056.0,1241.0,254.0,57.0,23.0,8.0,2.0,2.0,1.0,1.0,1.0 => same result with my code now..
-    fd_result_file = "./fd_result_file.txt"
-    file_list = os.listdir(dir_path)
-
-    # Read the data back from file
     data, header = nrrd.read(filename)
     print(data.shape)
     print(header)
@@ -87,7 +83,16 @@ if __name__ == "__main__":
     def_int = data[np.where(data)][0]  # 7
     assert np.all(data[np.where(data)] == def_int)
     data = data / def_int
-    lacunarity(data)
+    lac = lacunarity(data)
+    print(np.log(lac))
+
+    filename = "/home/soopil/Desktop/Dataset/brain_ewha/1550930_CE-label_sample.nrrd"
+    data, header = nrrd.read(filename)
+    assert np.all(data[np.where(data)] == def_int)
+    data = data / def_int
+    lac = lacunarity(data)
+    print(np.log(lac))
+
     # assert False
 
 
