@@ -32,7 +32,7 @@ def visualize(train_x, train_y):
     )
     sns.pairplot(data, hue='class')
 
-def check_result(model, train_x, train_y, test_x, test_y):
+def check_result(model, train_x, train_y, test_x, test_y) -> list:
     Pred = model.predict(train_x)
     print('label\t:', train_y)
     print('predict :', Pred)
@@ -62,6 +62,8 @@ def check_result(model, train_x, train_y, test_x, test_y):
     print(confusion_matrix(test_y, Pred))
     print(classification_report(test_y, Pred))
     print(accuracy_score(test_y, Pred))
+
+    return [train_accur, test_accur]
 
 def voting_classifier(train_x, train_y, test_x, test_y):
     rf = RandomForestClassifier(n_estimators=2000, random_state=0)
@@ -108,8 +110,36 @@ def Lac_logistic_classification():
     :return:
     '''
     data, label = Lac_dataloader()
+    data, label = shuffle_static(data, label)
+    data = np.log(data)
+    data = np.ones_like(data) / data
+    # data = normalize_col(data, axis=0)
     # print(data)
-    # print(label)
+    # assert False
+
+    fold_num = 5
+    whole_set = split_data_by_fold(data, label, fold_num)
+    print(np.shape(whole_set),np.shape(whole_set[0]))
+    results = []
+    for fold in whole_set:
+        train_x, train_y, test_x, test_y = fold
+        class_num = 2
+        sampling_option = "SIMPLE"
+        train_x, train_y = over_sampling(train_x, train_y, sampling_option)
+        test_x, test_y = valence_class(test_x, test_y, class_num)
+        model = logistic(train_x, train_y)
+        result = check_result(model, train_x, train_y, test_x, test_y)
+        results.append(result)
+        # print(result)
+        pass
+
+    for i in range(fold_num):
+        print('fold {} training accur : {} / testing accur : {}'.format(i,results[i][0], results[i][1]))
+
+    print(np.mean(results, axis=0))
+    assert False
+
+    # this part use the train_test_split method from sklearn
     train_x, test_x, train_y, test_y = train_test_split(data,label, test_size=0.2, random_state=0)
     train_x = np.array(train_x)
     print(np.shape(train_x), np.shape(train_y), np.shape(test_x), np.shape(test_y))

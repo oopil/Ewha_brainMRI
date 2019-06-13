@@ -299,6 +299,54 @@ def valence_class(data, label, class_num):
     print('down sampling : {} -> {}.'.format(label_count, label_count_new))
     return np.array(new_data), np.array(new_label)
 
+def split_data_by_fold(data, label, fold_num):
+    '''
+    :return: return all possible train and test set according to the fold number.
+    '''
+    label_set = list(set(label))
+    print('split the data into train and test by fold number. fold number : {} label set :{}' \
+          .format(fold_num, label_set))
+    separate_data = [[] for _ in range(len(label_set))]
+    separate_label = [[] for _ in range(len(label_set))]
+    # separate the data into different label list
+    for i, l in enumerate(label):
+        # print(i,l,label_count)
+        separate_data[l].append(data[i])
+        separate_label[l].append(label[i])
+    # print(separate_label)
+    label_count = [len(i) for i in separate_label]
+    test_count = [count // fold_num for count in label_count]
+    print(label_count, test_count)
+    smaller_data_num = min(label_count)
+    test_num = smaller_data_num // fold_num
+
+    whole_set = []
+    for fold_index in range(fold_num):
+        train_data, train_label, test_data, test_label = [], [], [], []
+        for i, one_label in enumerate(separate_data):
+            if fold_index == fold_num - 1:
+                train_data = train_data + one_label[:test_count[i] * fold_index]
+                train_label = train_label + separate_label[i][:test_count[i] * fold_index]
+                test_data = test_data + one_label[test_count[i] * fold_index:]
+                test_label = test_label + separate_label[i][test_count[i] * fold_index:]
+                pass
+            else:
+                train_data = train_data + one_label[:test_count[i] * fold_index] + one_label[test_count[i] * (
+                            fold_index + 1):]
+                train_label = train_label + separate_label[i][:test_count[i] * fold_index] + separate_label[i][
+                                                                                             test_count[i] * (
+                                                                                                         fold_index + 1):]
+                test_data = test_data + one_label[test_count[i] * fold_index:test_count[i] * (fold_index + 1)]
+                test_label = test_label + separate_label[i][
+                                          test_count[i] * fold_index:test_count[i] * (fold_index + 1)]
+        print(len(train_label) + len(test_label), len(train_label), len(test_label))
+        train_data = np.array(train_data)
+        test_data = np.array(test_data)
+        train_label = np.array(train_label)
+        test_label = np.array(test_label)
+        whole_set.append([train_data, train_label, test_data, test_label])
+    return whole_set
+
 def normalize_col(X_, axis=0):
     """
     if minimun is negative float, then we should divide with min + max
