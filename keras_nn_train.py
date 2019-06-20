@@ -8,9 +8,9 @@ from keras.utils import np_utils
 from keras.models import Sequential
 from keras.layers import Dense,Dropout,Flatten,Conv2D,MaxPooling2D,BatchNormalization
 from keras.optimizers import Adam
-
+from keras.callbacks import ModelCheckpoint
+from sklearn.metrics import classification_report
 from excel_data_reader import *
-
 import os
 import pandas as pd
 import numpy as np
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     train_x, train_y, test_x, test_y = EWHA_excel_datareader()
     sampling_option = "SIMPLE"
     train_x, train_y = over_sampling(train_x, train_y, sampling_option)
-    test_x, test_y = valence_class(test_x, test_y, class_num)
+    # test_x, test_y = valence_class(test_x, test_y, class_num)
     train_y = one_hot_pd(train_y)
     test_t = test_y
     test_y = one_hot_pd(test_y)
@@ -123,7 +123,7 @@ if __name__ == "__main__":
 
     # ------- Model training----- #
     LR = 1e-4 # 1e-3
-    epoch = 500
+    epoch = 70
     model = CNN_model()
     adam = Adam(lr=LR, beta_1=0.9, beta_2=0.999, epsilon=None, decay=LR * (1 / epoch), amsgrad=False)
     model.compile(loss='mean_squared_error', optimizer=adam, metrics=['accuracy'])
@@ -131,13 +131,27 @@ if __name__ == "__main__":
     # test_one_hot = np_utils.to_categorical(test_t)
     # test_depend_encode = test_one_hot
     train_history = model.fit(x=train_x, y=train_y,
-                            epochs=epoch, batch_size=len(train_y), verbose=1, validation_data=(test_x, test_y))
+                            epochs=epoch, batch_size=len(train_y), verbose=1, validation_split=0.1)
+    model.save('neuralnet_model.h5')
+    assert False
+    # model save part
+    # model_json = model.to_json()
+    # with open("model.json", "w") as json_file:
+    #     json_file.write(model_json)
+    #
+    # model.save_weights("model.h5")
+
     # train_history = model.fit(x=x_train_norm, y=t_train_onehot, epochs=20, batch_size=600, verbose=1)
     # y_test = model.predict_classes(x_test_norm)
+    validation_data = (test_x, test_y)
+
+
     y_test = model.predict(test_x)
     print(y_test[:5])
     # print(model.predict(train_x)[:5])
-    arg_ytest = np.argmax(y_test, axis=1) # we can use this code for one-hot encoding
+    arg_ytest = np.argmax(y_test, axis=1)
+    print(classification_report(test_y, arg_ytest, target_names=['low','high']))
+    assert False
     acc = np.sum(arg_ytest == test_t) / len(arg_ytest)  # count correct prediction
     print("accuracy is {}".format(acc))
     print(np.amax(train_history.history['val_acc']))
@@ -164,4 +178,3 @@ if __name__ == "__main__":
     #     for i in range(len(y_test)):
     #         writer.writerow((i, y_test[i]))
     #     print("Answer is saved in csv.")
-

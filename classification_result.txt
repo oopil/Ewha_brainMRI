@@ -1,0 +1,99 @@
+class 0 : low
+class 1 : high
+
+1. logistic regression
+
+              precision    recall  f1-score   support
+
+     class 0       0.89      0.85      0.87        47
+     class 1       0.50      0.58      0.54        12
+
+    accuracy                           0.80        59
+   macro avg       0.69      0.72      0.70        59
+weighted avg       0.81      0.80      0.80        59
+
+2. svm
+
+              precision    recall  f1-score   support
+
+     class 0       0.90      0.91      0.91        47
+     class 1       0.64      0.58      0.61        12
+
+    accuracy                           0.85        59
+   macro avg       0.77      0.75      0.76        59
+weighted avg       0.84      0.85      0.84        59
+
+3. random forest
+
+              precision    recall  f1-score   support
+
+     class 0       0.85      0.96      0.90        47
+     class 1       0.67      0.33      0.44        12
+
+    accuracy                           0.83        59
+   macro avg       0.76      0.65      0.67        59
+weighted avg       0.81      0.83      0.81        59
+
+4. bagging
+
+              precision    recall  f1-score   support
+
+     class 0       0.91      0.64      0.75        47
+     class 1       0.35      0.75      0.47        12
+
+    accuracy                           0.66        59
+   macro avg       0.63      0.69      0.61        59
+weighted avg       0.79      0.66      0.69        59
+
+
+5. voting
+
+              precision    recall  f1-score   support
+
+     class 0       0.90      0.91      0.91        47
+     class 1       0.64      0.58      0.61        12
+
+    accuracy                           0.85        59
+   macro avg       0.77      0.75      0.76        59
+weighted avg       0.84      0.85      0.84        59
+
+6. neural network
+6-1. 500 epoch
+              precision    recall  f1-score   support
+
+           0       0.94      0.85      0.89        52
+           1       0.33      0.57      0.42         7
+
+    accuracy                           0.81        59
+   macro avg       0.63      0.71      0.65        59
+weighted avg       0.86      0.81      0.83        59
+
+6-2 100 epoch
+              precision    recall  f1-score   support
+
+           0       0.94      0.90      0.92        49
+           1       0.58      0.70      0.64        10
+
+    accuracy                           0.86        59
+   macro avg       0.76      0.80      0.78        59
+weighted avg       0.88      0.86      0.87        59
+
+6-3 50 epoch
+              precision    recall  f1-score   support
+
+         low       0.85      0.91      0.88        44
+        high       0.67      0.53      0.59        15
+
+    accuracy                           0.81        59
+   macro avg       0.76      0.72      0.74        59
+weighted avg       0.80      0.81      0.81        59
+
+6-4 75 epoch
+              precision    recall  f1-score   support
+
+         low       0.94      0.90      0.92        49
+        high       0.58      0.70      0.64        10
+
+    accuracy                           0.86        59
+   macro avg       0.76      0.80      0.78        59
+weighted avg       0.88      0.86      0.87        59

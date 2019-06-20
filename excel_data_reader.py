@@ -387,7 +387,6 @@ def NN_dataloader(diag_type, class_option, \
     6. split train and test dataset (O)
     :return: train and test data and lable
     '''
-
     # "clinic" or "new" or "PET"
     # 'PET pos vs neg', 'NC vs MCI vs AD' 'NC vs mAD vs aAD vs ADD'
     # diag_type = "PET"

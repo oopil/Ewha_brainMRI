@@ -1,4 +1,3 @@
-import os
 import nrrd
 import numpy as np
 
@@ -28,7 +27,7 @@ def lacun_own(data, bs, shape):
     # print( buf_lambda)
     return buf_mean, buf_var, buf_lambda
 
-def box_count_ref(data, bs, shape):
+def box_count(data, bs, shape):
     slide = bs
     s1, s2, s3 = shape//bs
     print(s1, s2, s3, bs)
@@ -58,7 +57,7 @@ def lacunarity(data):
     #box counting
     # for i, bs in enumerate(bs_list):
     #     # if np.all(bs < shape):
-    #     cnt = box_count_ref(data, bs, shape)
+    #     cnt = box_count(data, bs, shape)
     #     box_count[i] = cnt
     # print(box_count)
     # assert False
