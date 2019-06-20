@@ -122,7 +122,7 @@ def FD_logistic_classify():
     class_num = 2
     sampling_option = "SIMPLE"
     train_x, train_y = over_sampling(train_x, train_y, sampling_option)
-    test_x, test_y = valence_class(test_x, test_y, class_num)
+    # test_x, test_y = valence_class(test_x, test_y, class_num)
     model = logistic(train_x, train_y)
     result = check_result(model, train_x, train_y, test_x, test_y)
     print(result)
@@ -140,14 +140,15 @@ def Lac_logistic_classify():
     train_y = tr_label_high + tr_label_low
     test_x = tst_high_fdim + tst_low_fdim
     test_y = tst_label_high + tst_label_low
-    train_x = np.array(train_x)
+    train_x, test_x = np.array(train_x),np.array(test_x)
 
     class_num = 2
     sampling_option = "SIMPLE"
     train_x, train_y = over_sampling(train_x, train_y, sampling_option)
-    test_x, test_y = valence_class(test_x, test_y, class_num)
+    # test_x, test_y = valence_class(test_x, test_y, class_num)
 
-    train_x, test_x = np.log(train_x), np.log(test_x)
+    # train_x, test_x = train_x[:,:3], test_x[:,:3]
+    # train_x, test_x = np.log(train_x), np.log(test_x)
     train_x, test_x = np.ones_like(train_x) / train_x, np.ones_like(test_x) / test_x
 
     # print(train_x)
@@ -223,5 +224,5 @@ def print_result_file(result_file_name):
 
 if __name__ == '__main__':
     # FD_logistic_classify()
-    # Lac_logistic_classify()
-    excel_classify()
+    Lac_logistic_classify()
+    # excel_classify()
