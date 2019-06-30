@@ -1,6 +1,6 @@
 import os
 import nrrd
-from Lacunarity import lacunarity
+from FD_python.Lacunarity import lacunarity
 
 file_name = "/home/soopil/Desktop/Dataset/brain_ewha/Meningioma_only_T1C_masks/1550930_CE-label.nrrd"
 dir_path =  "/home/soopil/Desktop/Dataset/brain_ewha/Meningioma_only_T1C_masks/"

@@ -1,14 +1,12 @@
-import numpy as np
 import pandas as pd
 import seaborn as sns
 from excel_data_reader import *
-from FD_data import *
+from FD_python.FD_data import *
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier, BaggingClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.tree import DecisionTreeClassifier
-from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 
 def dataloader():
@@ -60,7 +58,7 @@ def check_result(model, train_x, train_y, test_x, test_y) -> list:
 
     # print(test_y, Pred)
     print(confusion_matrix(test_y, Pred))
-    print(classification_report(test_y, Pred, target_names=['low','high']))
+    print(classification_report(test_y, Pred, target_names=['low','high'])) # str type
     print(accuracy_score(test_y, Pred))
 
     return [train_accur, test_accur]

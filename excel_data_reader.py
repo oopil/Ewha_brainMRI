@@ -553,5 +553,113 @@ def EWHA_excel_datareader():
     # assert False
     return train_x, train_y, test_x, test_y
 
+import csv
+def EWHA_external_datareader():
+    # --------------------- excel file read --------------------- #
+    base_folder_path = '/home/soopil/Desktop/Dataset/brain_ewha/external_validation'# desktop setting
+    external_path = os.path.join(base_folder_path,'External validation set_Ewha_Meningioma.xlsx')
+    xl = openpyxl.load_workbook(external_path, read_only=True)
+    ws = xl['Sheet1']
+    data_excel = []
+    for row in ws.rows:
+        line = []
+        for cell in row:
+            line.append(cell.value)
+        data_excel.append(line)
+
+    data_excel = np.array(data_excel)
+    subj_list= data_excel[1:,0]
+    print(data_excel[0])
+    print(len(data_excel[1:,0]))
+    label_list = np.squeeze( data_excel[1:, 5:6])
+    print(np.shape(label_list))
+    print(label_list)
+    print(len(np.where(label_list == 1)[0]),len(np.where(label_list == 0)[0]))
+    assert False
+    # --------------------- csv file read --------------------- #
+    def read_csv(file_path)->np.array:
+        f = open(file_path, 'r', encoding='utf-8')
+        rdr = csv.reader(f)
+        contents = []
+        for line in rdr:
+            contents.append(line)
+            # print(len(line),line)
+        f.close()
+        return np.array(contents)
+
+    def check_nan(l:list)->bool:
+        is_ = False
+        for i, e in enumerate(l):
+            if len(str(e)) == 0:
+                print(i,e,end=' ')
+                is_ = True
+        if is_:
+            print()
+        return is_
+
+
+    csv_dir_path = os.path.join(base_folder_path, 'CSV')
+    csv_file_list = os.listdir(csv_dir_path)
+    for i, e in enumerate(sorted(csv_file_list)):
+        e_split = e.split('_')
+        subj_name = e_split[0]
+        modality = e_split[-1]#.split('.')[0]
+        print(subj_name, modality)
+
+        csv_path = os.path.join(csv_dir_path, e)
+        contents = read_csv(csv_path)
+
+        # from 38 line Voxel volume
+        feature_name = contents[:,0]
+        # print(np.where(feature_name == 'original'))
+        i_start = np.where(feature_name == 'original')[0][0]
+        i_end = np.where(feature_name == 'original')[0][-1]
+        length = i_end-i_start
+        # print(i_start, i_end, length)
+        if subj_name == '11311865' and modality == 'T1C.csv':
+            features = contents[i_start:i_start+length, 4].astype(np.float32)
+        else:
+            features =  contents[i_start:i_start+length:, 3].astype(np.float32)
+
+        # print(len(features))
+        assert length == 106
+
+        if check_nan(features):
+            print(e)
+
+            # assert False
+        # print(features)
+        # print(contents)
+        # print(np.shape(contents), np.shape(features))
+        #
+        # assert False
+    print('csv total count : ',len(csv_file_list))
+
+    # --------------------- MRI image file read --------------------- #
+    print('<< check the MRI image files >>')
+    MRI_dir_path_1 = os.path.join(base_folder_path,'External_Meningioma_T1C_1')
+    MRI_dir_path_2 = os.path.join(base_folder_path,'External_Meningioma_T1C_2')
+    MRI_label_path = os.path.join(base_folder_path,'label')
+    MRI_dir_list_1 = os.listdir(MRI_dir_path_1)
+    MRI_dir_list_2 = os.listdir(MRI_dir_path_2)
+    MRI_label_list = os.listdir(MRI_label_path)
+
+    print(len(MRI_dir_list_1))
+    print(len(MRI_dir_list_2))
+    print(len(MRI_label_list))
+    # print(MRI_dir_list_2)
+
+    assert False
+    is_norm = True
+    if is_norm:
+        train_x = normalize_col(train_x, axis=0)
+        test_x = normalize_col(test_x, axis=0)
+
+    print(train_x.shape,train_y.shape, test_x.shape,test_y.shape)
+    # assert False
+    return train_x, train_y, test_x, test_y
+
 if __name__ == '__main__':
-    EWHA_excel_datareader()
+    # EWHA_excel_datareader()
+    EWHA_external_datareader()
+
