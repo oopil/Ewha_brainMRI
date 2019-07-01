@@ -1,8 +1,10 @@
 from sklearn.utils import shuffle
 from pandas import get_dummies
 import openpyxl
-import numpy as np
+import csv
 import os
+
+import numpy as np
 
 class MRI_chosun_data():
     def __init__(self):
@@ -553,7 +555,6 @@ def EWHA_excel_datareader():
     # assert False
     return train_x, train_y, test_x, test_y
 
-import csv
 def EWHA_external_datareader():
     # --------------------- excel file read --------------------- #
     base_folder_path = '/home/soopil/Desktop/Dataset/brain_ewha/external_validation'# desktop setting
@@ -568,14 +569,17 @@ def EWHA_external_datareader():
         data_excel.append(line)
 
     data_excel = np.array(data_excel)
-    subj_list= data_excel[1:,0]
+    subj_list_excel= data_excel[1:,0]
+    # print(subj_list_excel)
+    # assert False
     print(data_excel[0])
-    print(len(data_excel[1:,0]))
-    label_list = np.squeeze( data_excel[1:, 5:6])
-    print(np.shape(label_list))
-    print(label_list)
-    print(len(np.where(label_list == 1)[0]),len(np.where(label_list == 0)[0]))
-    assert False
+    # print(len(data_excel[1:,0]))
+    label_list = np.squeeze(data_excel[1:, 5:6])
+
+    # print(np.shape(label_list))
+    # print(label_list)
+    # print(len(np.where(label_list == 1)[0]),len(np.where(label_list == 0)[0]))
+    # assert False
     # --------------------- csv file read --------------------- #
     def read_csv(file_path)->np.array:
         f = open(file_path, 'r', encoding='utf-8')
@@ -597,13 +601,14 @@ def EWHA_external_datareader():
             print()
         return is_
 
-
+    subj_list_csv = []
     csv_dir_path = os.path.join(base_folder_path, 'CSV')
     csv_file_list = os.listdir(csv_dir_path)
     for i, e in enumerate(sorted(csv_file_list)):
         e_split = e.split('_')
         subj_name = e_split[0]
         modality = e_split[-1]#.split('.')[0]
+        subj_list_csv.append(int(subj_name))
         print(subj_name, modality)
 
         csv_path = os.path.join(csv_dir_path, e)
@@ -647,19 +652,93 @@ def EWHA_external_datareader():
     print(len(MRI_dir_list_1))
     print(len(MRI_dir_list_2))
     print(len(MRI_label_list))
+
+    total_list = MRI_dir_list_1 + MRI_dir_list_2
+    print(len(set(total_list)))
     # print(MRI_dir_list_2)
 
-    assert False
-    is_norm = True
-    if is_norm:
-        train_x = normalize_col(train_x, axis=0)
-        test_x = normalize_col(test_x, axis=0)
+    print(set(subj_list_csv))
+    print(set(subj_list_excel))
+    print(set(subj_list_csv) == set(subj_list_excel))
 
-    print(train_x.shape,train_y.shape, test_x.shape,test_y.shape)
+    tmp = []
+    for e in total_list:
+        tmp.append(int(e.split('_')[0]))
+
+    for a,b in zip(sorted(set(subj_list_csv)), sorted(tmp)):
+        print(a,b)
+        assert a == b
+
+def check_features():
+    # --------------------- ER meningloma file read --------------------- #
+    base_folder_path = '/home/soopil/Desktop/Dataset/brain_ewha'  # desktop setting
+    train_path = os.path.join(base_folder_path, 'Train_Meningioma_20180508.xlsx')
+    test_path = os.path.join(base_folder_path, 'Test_Meningioma_20180508.xlsx')
+    xl = openpyxl.load_workbook(train_path, read_only=True)
+    ws = xl['20171108_New_N4ITK corrected']
+    data_excel = []
+    for row in ws.rows:
+        line = []
+        for cell in row:
+            line.append(cell.value)
+        data_excel.append(line)
+    data_excel = np.array(data_excel)
+    # train_x = data_excel[1:, 4:102]
+    feature_name_list = data_excel[0, 4:102]
+    feature_T1 = []
+    for e in feature_name_list:
+        if 'T1C' in e:
+            feature_T1.append(e)
+            # print(e)
     # assert False
-    return train_x, train_y, test_x, test_y
+    # print(np.where('T1C' in feature_name_list))
+
+    # --------------------- external file read --------------------- #
+    base_folder_path = '/home/soopil/Desktop/Dataset/brain_ewha/external_validation'  # desktop setting
+    external_path = os.path.join(base_folder_path, 'External validation set_Ewha_Meningioma.xlsx')
+    xl = openpyxl.load_workbook(external_path, read_only=True)
+    ws = xl['Sheet1']
+    data_excel = []
+    for row in ws.rows:
+        line = []
+        for cell in row:
+            line.append(cell.value)
+        data_excel.append(line)
+
+    data_excel = np.array(data_excel)
+    # print(data_excel[0,10:])
+    feature_name_list_external = data_excel[0,10:]
+    feature_T1_external = []
+    for e in feature_name_list_external:
+        if 'T1C' in e:
+            feature_T1_external.append(e)
+            # print(e)
+    print(feature_T1)
+    print(feature_T1_external)
+
+    # for a,b in zip(feature_T1, feature_T1_external):
+    #     print('{:30} | {:30}'.format(a,b) )
+
+    l1, l2 = len(feature_T1), len(feature_T1_external)
+    length = np.max([l1,l2])
+    print(length)
+
+    print('<{:30}> <{:30}>'.format('existing T1 features', 'features from external dataset'))
+    print()
+    for i in range(length):
+        if i >= l1:
+            a = ' - '
+        else:
+            a = feature_T1[i]
+        if i >= l2:
+            b = ' - '
+        else:
+            b = feature_T1_external[i]
+
+        print('{:30} | {:30}'.format(a,b) )
 
 if __name__ == '__main__':
     # EWHA_excel_datareader()
-    EWHA_external_datareader()
+    # EWHA_external_datareader()
+    check_features()
 

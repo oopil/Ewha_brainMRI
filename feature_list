@@ -1,0 +1,109 @@
+<existing T1 features          > <features from external dataset>
+
+T1C_Entropy                    | T1C-shape-VoxelVolume
+T1C_Mean_Intensity             | T1C-shape-Maximum3DDiameter
+T1C_Standard_Deviation         | T1C-shape-MeshVolume
+T1C_Skewness                   | T1C-shape-MajorAxisLength
+T1C_Kurtosis                   | T1C-shape-Sphericity
+T1C_Uniformity                 | T1C-shape-LeastAxisLength
+T1C_Cluster_Prominence         | T1C-shape-Elongation
+T1C_Cluster_Shade              | T1C-shape-SurfaceVolumeRatio
+T1C_Contrast                   | T1C-shape-Maximum2DDiameterSlice
+T1C_Correlation                | T1C-shape-Flatness
+T1C_Dissimilarity              | T1C-shape-SurfaceArea
+T1C_Energy_(GLCM)              | T1C-shape-MinorAxisLength
+T1C_Entropy(GLCM)              | T1C-shape-Maximum2DDiameterColumn
+T1C_Homogeneity_1              | T1C-shape-Maximum2DDiameterRow
+T1C_Homogeneity_2              | T1C-gldm-GrayLevelVariance
+T1C_Maximum_Probability        | T1C-gldm-HighGrayLevelEmphasis
+T1C_Sum_Average                | T1C-gldm-DependenceEntropy
+T1C_Sum_Variance               | T1C-gldm-DependenceNonUniformity
+T1C_Variance_(GLCM)            | T1C-gldm-GrayLevelNonUniformity
+T1C_SRE                        | T1C-gldm-SmallDependenceEmphasis
+T1C_LRE                        | T1C-gldm-SmallDependenceHighGrayLevelEmphasis
+T1C_GLN                        | T1C-gldm-DependenceNonUniformityNormalized
+T1C_RLN                        | T1C-gldm-LargeDependenceEmphasis
+T1C_RP                         | T1C-gldm-LargeDependenceLowGrayLevelEmphasis
+T1C_LGLRE                      | T1C-gldm-DependenceVariance
+T1C_HGLRE                      | T1C-gldm-LargeDependenceHighGrayLevelEmphasis
+T1C_SRLGLE                     | T1C-gldm-SmallDependenceLowGrayLevelEmphasis
+T1C_SRHGLE                     | T1C-gldm-LowGrayLevelEmphasis
+T1C_LRLGLE                     | T1C-glcm-JointAverage
+T1C_LRHGLE                     | T1C-glcm-SumAverage
+ -                             | T1C-glcm-JointEntropy
+ -                             | T1C-glcm-ClusterShade
+ -                             | T1C-glcm-MaximumProbability
+ -                             | T1C-glcm-Idmn
+ -                             | T1C-glcm-JointEnergy
+ -                             | T1C-glcm-Contrast
+ -                             | T1C-glcm-DifferenceEntropy
+ -                             | T1C-glcm-InverseVariance
+ -                             | T1C-glcm-DifferenceVariance
+ -                             | T1C-glcm-Idn
+ -                             | T1C-glcm-Idm
+ -                             | T1C-glcm-Correlation
+ -                             | T1C-glcm-Autocorrelation
+ -                             | T1C-glcm-SumEntropy
+ -                             | T1C-glcm-MCC
+ -                             | T1C-glcm-SumSquares
+ -                             | T1C-glcm-ClusterProminence
+ -                             | T1C-glcm-Imc2
+ -                             | T1C-glcm-Imc1
+ -                             | T1C-glcm-DifferenceAverage
+ -                             | T1C-glcm-Id
+ -                             | T1C-glcm-ClusterTendency
+ -                             | T1C-firstorder-InterquartileRange
+ -                             | T1C-firstorder-Skewness
+ -                             | T1C-firstorder-Uniformity
+ -                             | T1C-firstorder-Median
+ -                             | T1C-firstorder-Energy
+ -                             | T1C-firstorder-RobustMeanAbsoluteDeviation
+ -                             | T1C-firstorder-MeanAbsoluteDeviation
+ -                             | T1C-firstorder-TotalEnergy
+ -                             | T1C-firstorder-Maximum
+ -                             | T1C-firstorder-RootMeanSquared
+ -                             | T1C-firstorder-90Percentile
+ -                             | T1C-firstorder-Minimum
+ -                             | T1C-firstorder-Entropy
+ -                             | T1C-firstorder-Range
+ -                             | T1C-firstorder-Variance
+ -                             | T1C-firstorder-10Percentile
+ -                             | T1C-firstorder-Kurtosis
+ -                             | T1C-firstorder-Mean
+ -                             | T1C-glrlm-ShortRunLowGrayLevelEmphasis
+ -                             | T1C-glrlm-GrayLevelVariance
+ -                             | T1C-glrlm-LowGrayLevelRunEmphasis
+ -                             | T1C-glrlm-GrayLevelNonUniformityNormalized
+ -                             | T1C-glrlm-RunVariance
+ -                             | T1C-glrlm-GrayLevelNonUniformity
+ -                             | T1C-glrlm-LongRunEmphasis
+ -                             | T1C-glrlm-ShortRunHighGrayLevelEmphasis
+ -                             | T1C-glrlm-RunLengthNonUniformity
+ -                             | T1C-glrlm-ShortRunEmphasis
+ -                             | T1C-glrlm-LongRunHighGrayLevelEmphasis
+ -                             | T1C-glrlm-RunPercentage
+ -                             | T1C-glrlm-LongRunLowGrayLevelEmphasis
+ -                             | T1C-glrlm-RunEntropy
+ -                             | T1C-glrlm-HighGrayLevelRunEmphasis
+ -                             | T1C-glrlm-RunLengthNonUniformityNormalized
+ -                             | T1C-glszm-GrayLevelVariance
+ -                             | T1C-glszm-ZoneVariance
+ -                             | T1C-glszm-GrayLevelNonUniformityNormalized
+ -                             | T1C-glszm-SizeZoneNonUniformityNormalized
+ -                             | T1C-glszm-SizeZoneNonUniformity
+ -                             | T1C-glszm-GrayLevelNonUniformity
+ -                             | T1C-glszm-LargeAreaEmphasis
+ -                             | T1C-glszm-SmallAreaHighGrayLevelEmphasis
+ -                             | T1C-glszm-ZonePercentage
+ -                             | T1C-glszm-LargeAreaLowGrayLevelEmphasis
+ -                             | T1C-glszm-LargeAreaHighGrayLevelEmphasis
+ -                             | T1C-glszm-HighGrayLevelZoneEmphasis
+ -                             | T1C-glszm-SmallAreaEmphasis
+ -                             | T1C-glszm-LowGrayLevelZoneEmphasis
+ -                             | T1C-glszm-ZoneEntropy
+ -                             | T1C-glszm-SmallAreaLowGrayLevelEmphasis
+ -                             | T1C-ngtdm-Coarseness
+ -                             | T1C-ngtdm-Complexity
+ -                             | T1C-ngtdm-Strength
+ -                             | T1C-ngtdm-Contrast
+ -                             | T1C-ngtdm-Busyness
