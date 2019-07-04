@@ -3,6 +3,9 @@ import numpy as np
 import openpyxl
 from matplotlib import pyplot as plt
 
+def FD_merge_dataloader(xl_path):
+    pass
+
 def FD_dataloader(xl_path, sheet_name):
     xl = openpyxl.load_workbook(xl_path, read_only=True)
     ws = xl[sheet_name]

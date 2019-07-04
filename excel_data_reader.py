@@ -511,6 +511,7 @@ def EWHA_excel_datareader():
     base_folder_path = '/home/soopil/Desktop/Dataset/brain_ewha'# desktop setting
     train_path = os.path.join(base_folder_path, 'Train_Meningioma_20180508.xlsx')
     test_path = os.path.join(base_folder_path, 'Test_Meningioma_20180508.xlsx')
+
     xl = openpyxl.load_workbook(train_path, read_only=True)
     ws = xl['20171108_New_N4ITK corrected']
     data_excel = []
