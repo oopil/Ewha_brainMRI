@@ -102,6 +102,15 @@ def logistic(train_x, train_y):
     logreg.fit(train_x, train_y)
     return logreg
 
+def merge_data_classification():
+    tr_x, tr_y, tst_x, tst_y = FD_merge_dataloader()
+    sampling_option = "SIMPLE"
+    tr_x, tr_y = over_sampling(tr_x, tr_y, sampling_option)
+    # test_x, test_y = valence_class(tst_x, tst_y, 2)
+    model = logistic(tr_x, tr_y)
+    result = check_result(model, tr_x, tr_y, tst_x, tst_y)
+    print(result)
+
 def FD_logistic_classify():
     '''
     train with the box counting fractal dimension ...
@@ -221,6 +230,7 @@ def print_result_file(result_file_name):
     file.close()
 
 if __name__ == '__main__':
+    merge_data_classification()
     # FD_logistic_classify()
-    Lac_logistic_classify()
+    # Lac_logistic_classify()
     # excel_classify()
