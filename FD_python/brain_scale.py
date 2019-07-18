@@ -3,6 +3,7 @@ import nrrd
 import numpy as np
 import SimpleITK as sitk
 from scipy import ndimage
+from skimage.transform import rescale
 
 def read_MRI(img_path):
     print("file path : {}" .format(img_path))
@@ -70,24 +71,49 @@ def check_mask_area():
     save_nifti_file(brain_array, itk_file, sample_dir_path, save_file_name)
 
 def main():
+    sample_SINCHON = {
+        'T1':'4045934_T1C.nii.gz',
+        'T2':'4045934_T2.nii.gz',
+        'mask':'4045934_T1C-label.nrrd'
+    }
+    sample_EWHA = {
+        'T1':'10016344_T1C.nii.gz',
+        'T2':'10016344_T2.nii.gz',
+        'mask':'10016344_T1C-label.nrrd'
+    }
     base_dir = '/home/soopil/Desktop/github/z_sampleData/ewha_brain_tumor/'
-    sample_label = '/home/soopil/Desktop/github/z_sampleData/ewha_brain_tumor/4045934_T1C-label.nrrd'
-    sample_T1 = '/home/soopil/Desktop/github/z_sampleData/ewha_brain_tumor/4045934_T1C.nii.gz'
-    sample_T2 = '/home/soopil/Desktop/github/z_sampleData/ewha_brain_tumor/4045934_T2.nii.gz'
+    sample_label = os.path.join(base_dir,sample_SINCHON['mask'])
+    sample_T1 = os.path.join(base_dir,sample_SINCHON['T1'])
+    sample_T2 = os.path.join(base_dir,sample_SINCHON['T2'])
+
+    sample_label = os.path.join(base_dir,sample_EWHA['mask'])
+    sample_T1 = os.path.join(base_dir,sample_EWHA['T1'])
+    sample_T2 = os.path.join(base_dir,sample_EWHA['T2'])
     label, header = nrrd.read(sample_label)
     print(label.shape)
     print(header)
+    shape = label.shape
+    maxi = np.amax(shape)
+    mini = np.amin(shape)
+    scale = int(round(maxi/mini))
+    print(maxi, mini, scale)
 
     def_int = label[np.where(label)][0]  # 7
-    assert np.all(label[np.where(label)] == def_int)
-    label = label / def_int
-
     T1, itk_T1 = read_MRI(sample_T1)
     # T2, itk_T2 = read_MRI(sample_T2)
 
-    # T1_zoom = ndimage.zoom(T1, 2, order=1)
-    T1_zoom = np.kron(T1, np.ones((2,1,1)))
+    scale_array = (scale,0.5,0.5)
+    label = np.swapaxes(label, 0, 2)
+
+    T1_zoom = rescale(T1, 0.5)
+
+
+    # T1_zoom = np.kron(T1, np.ones(scale_array))
+    # label_zoom = np.kron(label, np.ones(scale_array))
+    # print(np.shape(label_zoom))
     print(np.shape(T1_zoom))
+    # save_nifti_file(label_zoom, itk_T1, base_dir, 'label_zoom.nii.gz')
+    # save_nifti_file(T1_zoom, itk_T1, base_dir, 'T1_zoom.nii.gz')
 
     # np.swapaxes(x, 0, 1)
     # lac = lacunarity(data)

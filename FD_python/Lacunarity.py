@@ -43,25 +43,27 @@ def box_count(data, bs, shape):
 
     return box_count
 
+def box_count_FD(data):
+    shape = np.array(data.shape)
+    print('<< compute box counting >>')
+    bs_list = [2 ** i for i in range(0, 10)]
+    box_count_result = np.zeros_like(bs_list)
+    # box counting
+    for i, bs in enumerate(bs_list):
+        cnt = box_count(data, bs, shape)
+        box_count_result[i] = cnt
+    print(box_count_result)
+    return box_count_result
+
 def lacunarity(data):
     shape = np.array(data.shape)
     print('<< compute lacunarity >>')
     bs_list = [2**i for i in range(1, 10)]
     box_count = np.zeros_like(bs_list)
     lac = []
-    cnt = []
     print(shape)
     print(bs_list)
     print(box_count)
-
-    #box counting
-    # for i, bs in enumerate(bs_list):
-    #     # if np.all(bs < shape):
-    #     cnt = box_count(data, bs, shape)
-    #     box_count[i] = cnt
-    # print(box_count)
-    # assert False
-
     for bs in bs_list:
         buf_mean, buf_var, buf_lambda = lacun_own(data, bs, shape)
         lac.append(np.mean(buf_lambda))
