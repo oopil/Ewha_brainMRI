@@ -8,6 +8,8 @@ This is a temporary script file.
 
 import os
 
+base_dir = '/home/soopil/Desktop/Dataset/EWHA_brain_tumor'
+
 file_list = os.listdir('.')
 print(file_list)
 #nifti_list = os.listdir('EWHA\\meningioma')

@@ -7,14 +7,15 @@ This is a temporary script file.
 
 
 import os
+base_dir = '/home/soopil/Desktop/Dataset/EWHA_brain_tumor'
 
-file_list = os.listdir('.')
+file_list = os.listdir(base_dir)
 print(file_list)
 nifti_dir= 'nifti'
-nifti_list = os.listdir(nifti_dir)
+nifti_list = os.listdir(os.path.join(base_dir, nifti_dir))
 #print(nifti_list)
-csv_list = os.listdir('0_Fwd_ MENINGIOMA 추가 자료 1_190711\\Additional_Pt_csv\\Additional_Pt_csv')
-mask_list = os.listdir('0_Fwd_ MENINGIOMA 추가 자료 1_190711\\Additional_Pt_masks\\Additional_Pt_masks')
+csv_list = os.listdir(os.path.join(base_dir,'0_Fwd_ MENINGIOMA 추가 자료 1_190711/Additional_Pt_csv/Additional_Pt_csv'))
+mask_list = os.listdir(os.path.join(base_dir,'0_Fwd_ MENINGIOMA 추가 자료 1_190711/Additional_Pt_masks/Additional_Pt_masks'))
 print(csv_list)
 print(mask_list)
 print(len(csv_list), len(mask_list), len(nifti_list))
