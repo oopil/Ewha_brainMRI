@@ -74,6 +74,7 @@ def FD_merge_dataloader():
         name_list.append(subj_name)
 
     tr_x, tr_y, tst_x, tst_y = [],[],[],[]
+    valid_dim = 9
     cnt = 0
     for subj in fd_list:
         name = int(subj[0])
@@ -82,7 +83,6 @@ def FD_merge_dataloader():
         r = np.array([2 ** i for i in range(0, length)]).astype(np.float32)
         n_grad = np.gradient(np.log(n))
         r_grad = np.gradient(np.log(r))
-        valid_dim = 9
         dim = (np.divide(n_grad, r_grad) * (-1))[:valid_dim]
         # print(len(dim))
         # print(dim)
