@@ -71,6 +71,22 @@ def check_mask_area():
     save_file_name = 'dilation_maksed_brain' + '.nii'
     save_nifti_file(brain_array, itk_file, sample_dir_path, save_file_name)
 
+def rescale_3D(array, zoom_size):
+    # ----------- array rescaling part ----------- #
+    array = np.swapaxes(array, 0, 2)
+    rescaled = resize(array, zoom_size, anti_aliasing=False)
+    return rescaled
+
+def chosun_test():
+    img_path = '/home/soopil/Desktop/github/z_sampleData/ewha_brain_tumor/chosun_brain.nii'
+    img, itk = read_MRI(img_path)
+    rescale_size = (128,128,128)
+    img_rescaled = rescale_3D(img, rescale_size)
+    ps = 64 # patch size
+    hps = ps // 2 # half of it
+    img_rescaled = img_rescaled[64-hps:64+hps, 64-hps:64+hps, 64-hps:64+hps]
+    save_nifti_file(img_rescaled, itk, '/home/soopil/Desktop/github/z_sampleData/ewha_brain_tumor/', 'chosun_brain_128.nii.gz')
+
 def main():
     sample_SINCHON = {
         'T1':'4045934_T1C.nii.gz',
@@ -131,4 +147,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    chosun_test()
+    # main()

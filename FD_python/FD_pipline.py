@@ -15,10 +15,11 @@ fd = open(fd_result_file, 'a+t')
 fd.write('box counting fractal dimension.\n')
 
 def rescale_th_3D(array, zoom_size):
-    # ------------------------ array rescaling part ------------------------ #
+    # ----------- array rescaling part ----------- #
     array = np.swapaxes(array, 0, 2)
     rescaled = resize(array, zoom_size, anti_aliasing=False) * 1e5
     # print(rescaled)
+    # ----------- array thresholding part ----------- #
     th = 2
     rescaled[np.where(rescaled < th)] = 0
     rescaled[np.where(rescaled > th)] = 1
