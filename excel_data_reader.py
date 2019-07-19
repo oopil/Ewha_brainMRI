@@ -744,6 +744,7 @@ def check_features():
         print('{:30} | {:30}'.format(a,b) )
 
 def EWHA_CSV_reader():
+    is_FD_set = False
     # --------------------- excel file read --------------------- #
     base_folder_path = "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/0_Fwd_ MENINGIOMA 추가 자료 1_190711"
     external_path = os.path.join(base_folder_path,'Training set_Sinchon_Meningioma.xlsx')
@@ -802,17 +803,12 @@ def EWHA_CSV_reader():
         data_fd.append(fdim+lac)
         # print(subj, bx_count, lac)
         # print(len(bx_count), len(lac))
-
         # print(list(FD(np.flip(lac)))) # ???? let me try
         # print(list(fdim))
         print()
     fd.close()
-
-    # assert False
-
-
     # --------------------- csv file read --------------------- #
-    data = []
+    data_f, label_f  = [],[]
     subj_list_csv = []
     subj_list_no_csv = []
     csv_dir_path = os.path.join(base_folder_path, 'CSV')
@@ -824,17 +820,18 @@ def EWHA_CSV_reader():
         label, sex = label_list[i], sex_list[i]
 
         if sex == 'M':
-            sex = 0
+            sex = [0.]
         else:
-            sex = 1
+            sex = [1.]
 
-        print(subj, label, sex)
+        # print(subj, label, sex)
         T1C = str(subj)+'_T1C.csv'
         T2 = str(subj)+'_T2.csv'
 
         if (T1C in csv_file_list) and (T2 in csv_file_list) and (str(subj) in subj_list_fd):
             '''
             only use files with mask, T1C csv, T2C csv
+            need to normalize features from T1C and T2 here
             '''
             # T1C csv file read
             csv_path = os.path.join(csv_dir_path, T1C)
@@ -872,18 +869,30 @@ def EWHA_CSV_reader():
 
             if check_nan(features_T2):
                 print('detect nan number in T2 features : ', subj)
-            features = features_T1C + features_T2
+
             # sex features label
+            features = sex + list(features_T1C) + list(features_T2)
+
+            if is_FD_set:
+                index_fd = subj_list_fd.index(str(subj))
+                fd = data_fd[index_fd]
+                features = features + fd
+
+            # print(features)
             subj_list_csv.append(subj)
+            data_f.append(features)
+            label_f.append(label)
         else:
             subj_list_no_csv.append(subj)
 
     print('subjects with CSV files : ', len(subj_list_csv), subj_list_csv)
     print('subjects with no CSV files : ', len(subj_list_no_csv), subj_list_no_csv)
-    assert False
+    return data_f, label_f
 
 if __name__ == '__main__':
     # EWHA_excel_datareader()
     # EWHA_external_datareader()
     # check_features()
-    EWHA_CSV_reader()
+    data, label = EWHA_CSV_reader()
+    print(label)
+    print('final class count : ',np.sum(label), len(label) - np.sum(label))

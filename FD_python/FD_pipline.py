@@ -15,7 +15,7 @@ fd_result_file = "../fd_result/EWHA_FD_result_20190719_rescale.txt"
 fd = open(fd_result_file, 'a+t')
 fd.write('box counting fractal dimension.\n')
 
-def rescale_th_3D(array, zoom_size):
+def rescale_threshold_3D(array, zoom_size):
     # ----------- array rescaling part ----------- #
     array = np.swapaxes(array, 0, 2)
     rescaled = resize(array, zoom_size, anti_aliasing=False) * 1e5
@@ -36,7 +36,7 @@ for i, name in enumerate(sorted(file_list)):
     # print()
     file_path = os.path.join(dir_path, name)
     data, header = nrrd.read(file_path)
-    rescaled_data = rescale_th_3D(data, (256,256,256))
+    rescaled_data = rescale_threshold_3D(data, (256,256,256))
     data = rescaled_data
     # print(subj_name, np.shape(data))
     # print(str(np.shape(data)))
