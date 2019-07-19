@@ -508,6 +508,26 @@ def over_sampling(X_imb, Y_imb, sampling_option):
     print('over sampling from {:5} -> {:5}.'.format(imbalance_num, balance_num))
     return X_samp, Y_samp
 
+def read_csv(file_path)->np.array:
+    f = open(file_path, 'r', encoding='utf-8')
+    rdr = csv.reader(f)
+    contents = []
+    for line in rdr:
+        contents.append(line)
+        # print(len(line),line)
+    f.close()
+    return np.array(contents)
+
+def check_nan(l:list)->bool:
+    is_ = False
+    for i, e in enumerate(l):
+        if len(str(e)) == 0:
+            print(i,e,end=' ')
+            is_ = True
+    if is_:
+        print()
+    return is_
+
 def EWHA_excel_datareader():
     base_folder_path = '/home/soopil/Desktop/Dataset/brain_ewha'# desktop setting
     train_path = os.path.join(base_folder_path, 'Train_Meningioma_20180508.xlsx')
@@ -583,26 +603,6 @@ def EWHA_external_datareader():
     # print(len(np.where(label_list == 1)[0]),len(np.where(label_list == 0)[0]))
     # assert False
     # --------------------- csv file read --------------------- #
-    def read_csv(file_path)->np.array:
-        f = open(file_path, 'r', encoding='utf-8')
-        rdr = csv.reader(f)
-        contents = []
-        for line in rdr:
-            contents.append(line)
-            # print(len(line),line)
-        f.close()
-        return np.array(contents)
-
-    def check_nan(l:list)->bool:
-        is_ = False
-        for i, e in enumerate(l):
-            if len(str(e)) == 0:
-                print(i,e,end=' ')
-                is_ = True
-        if is_:
-            print()
-        return is_
-
     subj_list_csv = []
     csv_dir_path = os.path.join(base_folder_path, 'CSV')
     csv_file_list = os.listdir(csv_dir_path)
@@ -758,69 +758,129 @@ def EWHA_CSV_reader():
 
     data_excel = np.array(data_excel)
     subj_list_excel= data_excel[1:,0]
-    # print(subj_list_excel)
-    # assert False
+    label_list = np.squeeze(data_excel[1:, 5:5+1])
+    sex_list = np.squeeze(data_excel[1:, 107:107+1])
+    print(len(subj_list_excel),subj_list_excel)
     print(data_excel[0])
+    print(label_list)
+    print(sex_list)
+    print('instance number of each class : ',len(np.where(label_list == 1)[0]),len(np.where(label_list == 0)[0]))
 
-    assert False
-    # print(len(data_excel[1:,0]))
-    label_list = np.squeeze(data_excel[1:, 5:6])
+    # --------------------- Fractal dimention result file read --------------------- #
+    result_dpath = '/home/soopil/Desktop/github/Ewha_brainMRI/fd_result/'
+    result_fname = 'SINCHON_FD_result_20190718.txt'
+    # result_fname = 'SINCHON_FD_result_20190719_rescale.txt'
+    result_fpath = os.path.join(result_dpath, result_fname)
 
-    # print(np.shape(label_list))
-    # print(label_list)
-    # print(len(np.where(label_list == 1)[0]),len(np.where(label_list == 0)[0]))
+    fd = open(result_fpath)
+    lines = fd.readlines()
+    print(lines)
+
+    def FD(box_count):
+        box_count = np.array(box_count).astype(np.float32)
+        length = len(box_count)
+        r = np.array([2 ** i for i in range(0, length)]).astype(np.float32)
+        n_grad = np.gradient(np.log(box_count))
+        r_grad = np.gradient(np.log(r))
+        return (np.divide(n_grad, r_grad) * (-1))
+
+    subj_list_fd, data_fd = [],[]
+
+    for line in lines:
+
+        if line == 'box counting fractal dimension.\n':
+            continue
+        split = line.split('/')
+        subj = split[0]
+        bx_count = split[2].split(',')
+        lac = split[3].split(',')
+        lac = list(np.array(lac).astype(np.float32)) # need certain normalization or other processes
+        fdim = list(FD(bx_count))
+        print(fdim+lac)
+        assert len(fdim) == 10 and len(lac) == 9
+        subj_list_fd.append(subj)
+        data_fd.append(fdim+lac)
+        # print(subj, bx_count, lac)
+        # print(len(bx_count), len(lac))
+
+        # print(list(FD(np.flip(lac)))) # ???? let me try
+        # print(list(fdim))
+        print()
+    fd.close()
+
     # assert False
+
+
     # --------------------- csv file read --------------------- #
-    def read_csv(file_path)->np.array:
-        f = open(file_path, 'r', encoding='utf-8')
-        rdr = csv.reader(f)
-        contents = []
-        for line in rdr:
-            contents.append(line)
-            # print(len(line),line)
-        f.close()
-        return np.array(contents)
-
-    def check_nan(l:list)->bool:
-        is_ = False
-        for i, e in enumerate(l):
-            if len(str(e)) == 0:
-                print(i,e,end=' ')
-                is_ = True
-        if is_:
-            print()
-        return is_
-
+    data = []
     subj_list_csv = []
+    subj_list_no_csv = []
     csv_dir_path = os.path.join(base_folder_path, 'CSV')
     csv_file_list = os.listdir(csv_dir_path)
-    for i, e in enumerate(sorted(csv_file_list)):
-        e_split = e.split('_')
-        subj_name = e_split[0]
-        modality = e_split[-1]#.split('.')[0]
-        subj_list_csv.append(int(subj_name))
-        print(subj_name, modality)
+    print('total csv file number : ',len(csv_file_list))
+    print(csv_file_list)
 
-        csv_path = os.path.join(csv_dir_path, e)
-        contents = read_csv(csv_path)
+    for i, subj in enumerate(subj_list_excel):
+        label, sex = label_list[i], sex_list[i]
 
-        # from 38 line Voxel volume
-        feature_name = contents[:,0]
-        # print(np.where(feature_name == 'original'))
-        i_start = np.where(feature_name == 'original')[0][0]
-        i_end = np.where(feature_name == 'original')[0][-1]
-        length = i_end-i_start
-        # print(i_start, i_end, length)
-        if subj_name == '11311865' and modality == 'T1C.csv':
-            features = contents[i_start:i_start+length, 4].astype(np.float32)
+        if sex == 'M':
+            sex = 0
         else:
-            features =  contents[i_start:i_start+length:, 3].astype(np.float32)
+            sex = 1
 
-        # print(len(features))
-        assert length == 106
+        print(subj, label, sex)
+        T1C = str(subj)+'_T1C.csv'
+        T2 = str(subj)+'_T2.csv'
 
-        if check_nan(features):
-            print(e)
+        if (T1C in csv_file_list) and (T2 in csv_file_list) and (str(subj) in subj_list_fd):
+            '''
+            only use files with mask, T1C csv, T2C csv
+            '''
+            # T1C csv file read
+            csv_path = os.path.join(csv_dir_path, T1C)
+            contents = read_csv(csv_path)
+            # from 38 line Voxel volume
+            feature_name = contents[:, 0]
+            i_start = np.where(feature_name == 'original')[0][0]
+            i_end = np.where(feature_name == 'original')[0][-1]
+            length = i_end - i_start
+            assert length == 106
+            features_T1C = contents[i_start:i_start + length:, 3].astype(np.float32)
+
+            if check_nan(features_T1C):
+                print('detect nan number in T1C features : ',subj)
+
+            # T2 csv file read
+            csv_path = os.path.join(csv_dir_path, T2)
+            contents = read_csv(csv_path)
+
+            # format exception => skip first
+            if subj in [5596598, 8453071]:
+                subj_list_no_csv.append(subj)
+                continue
+                f = open(csv_path, 'r', encoding='utf-8')
+                rdr = csv.reader(f)
+                assert False
+
+            # from 38 line Voxel volume
+            feature_name = contents[:, 0]
+            i_start = np.where(feature_name == 'original')[0][0]
+            i_end = np.where(feature_name == 'original')[0][-1]
+            length = i_end - i_start
+            assert length == 106
+            features_T2 = contents[i_start:i_start + length:, 3].astype(np.float32)
+
+            if check_nan(features_T2):
+                print('detect nan number in T2 features : ', subj)
+            features = features_T1C + features_T2
+            # sex features label
+            subj_list_csv.append(subj)
+        else:
+            subj_list_no_csv.append(subj)
+
+    print('subjects with CSV files : ', len(subj_list_csv), subj_list_csv)
+    print('subjects with no CSV files : ', len(subj_list_no_csv), subj_list_no_csv)
+    assert False
 
 if __name__ == '__main__':
     # EWHA_excel_datareader()
