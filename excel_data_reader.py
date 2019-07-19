@@ -895,4 +895,4 @@ if __name__ == '__main__':
     # check_features()
     data, label = EWHA_CSV_reader()
     print(label)
-    print('final class count : ',np.sum(label), len(label) - np.sum(label))
+    print('final class count : ',len(label), np.sum(label), len(label) - np.sum(label))
