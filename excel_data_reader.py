@@ -672,6 +672,10 @@ def EWHA_external_datareader():
         assert a == b
 
 def check_features():
+    '''
+    print all the features in CSV files compared to the original excel data.
+    :return:
+    '''
     # --------------------- ER meningloma file read --------------------- #
     base_folder_path = '/home/soopil/Desktop/Dataset/brain_ewha'  # desktop setting
     train_path = os.path.join(base_folder_path, 'Train_Meningioma_20180508.xlsx')
@@ -739,8 +743,87 @@ def check_features():
 
         print('{:30} | {:30}'.format(a,b) )
 
+def EWHA_CSV_reader():
+    # --------------------- excel file read --------------------- #
+    base_folder_path = "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/0_Fwd_ MENINGIOMA 추가 자료 1_190711"
+    external_path = os.path.join(base_folder_path,'Training set_Sinchon_Meningioma.xlsx')
+    xl = openpyxl.load_workbook(external_path, read_only=True)
+    ws = xl['20171108_New_N4ITK corrected']
+    data_excel = []
+    for row in ws.rows:
+        line = []
+        for cell in row:
+            line.append(cell.value)
+        data_excel.append(line)
+
+    data_excel = np.array(data_excel)
+    subj_list_excel= data_excel[1:,0]
+    # print(subj_list_excel)
+    # assert False
+    print(data_excel[0])
+
+    assert False
+    # print(len(data_excel[1:,0]))
+    label_list = np.squeeze(data_excel[1:, 5:6])
+
+    # print(np.shape(label_list))
+    # print(label_list)
+    # print(len(np.where(label_list == 1)[0]),len(np.where(label_list == 0)[0]))
+    # assert False
+    # --------------------- csv file read --------------------- #
+    def read_csv(file_path)->np.array:
+        f = open(file_path, 'r', encoding='utf-8')
+        rdr = csv.reader(f)
+        contents = []
+        for line in rdr:
+            contents.append(line)
+            # print(len(line),line)
+        f.close()
+        return np.array(contents)
+
+    def check_nan(l:list)->bool:
+        is_ = False
+        for i, e in enumerate(l):
+            if len(str(e)) == 0:
+                print(i,e,end=' ')
+                is_ = True
+        if is_:
+            print()
+        return is_
+
+    subj_list_csv = []
+    csv_dir_path = os.path.join(base_folder_path, 'CSV')
+    csv_file_list = os.listdir(csv_dir_path)
+    for i, e in enumerate(sorted(csv_file_list)):
+        e_split = e.split('_')
+        subj_name = e_split[0]
+        modality = e_split[-1]#.split('.')[0]
+        subj_list_csv.append(int(subj_name))
+        print(subj_name, modality)
+
+        csv_path = os.path.join(csv_dir_path, e)
+        contents = read_csv(csv_path)
+
+        # from 38 line Voxel volume
+        feature_name = contents[:,0]
+        # print(np.where(feature_name == 'original'))
+        i_start = np.where(feature_name == 'original')[0][0]
+        i_end = np.where(feature_name == 'original')[0][-1]
+        length = i_end-i_start
+        # print(i_start, i_end, length)
+        if subj_name == '11311865' and modality == 'T1C.csv':
+            features = contents[i_start:i_start+length, 4].astype(np.float32)
+        else:
+            features =  contents[i_start:i_start+length:, 3].astype(np.float32)
+
+        # print(len(features))
+        assert length == 106
+
+        if check_nan(features):
+            print(e)
+
 if __name__ == '__main__':
     # EWHA_excel_datareader()
     # EWHA_external_datareader()
-    check_features()
-
+    # check_features()
+    EWHA_CSV_reader()
