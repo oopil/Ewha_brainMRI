@@ -2,6 +2,8 @@ import nrrd
 import numpy as np
 
 def lacun_own(data, bs, shape):
+    # can set the sliding interval
+
     # slide = 1
     slide = bs // 2
     # slide = bs

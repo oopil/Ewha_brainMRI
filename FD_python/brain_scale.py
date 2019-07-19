@@ -3,7 +3,8 @@ import nrrd
 import numpy as np
 import SimpleITK as sitk
 from scipy import ndimage
-from skimage.transform import rescale
+from skimage.transform import rescale, resize, downscale_local_mean
+from skimage.filters import threshold_otsu, threshold_local
 
 def read_MRI(img_path):
     print("file path : {}" .format(img_path))
@@ -98,22 +99,31 @@ def main():
     scale = int(round(maxi/mini))
     print(maxi, mini, scale)
 
-    def_int = label[np.where(label)][0]  # 7
     T1, itk_T1 = read_MRI(sample_T1)
     # T2, itk_T2 = read_MRI(sample_T2)
 
-    scale_array = (scale,0.5,0.5)
+    # ------------------------ label rescaling part ------------------------ #
     label = np.swapaxes(label, 0, 2)
+    zoom_size = (256,256,256)
+    # i need to check the label_zoom it has float value after resizing
+    # T1_zoom = rescale(T1, 0.5)
+    T1_zoom = resize(T1, zoom_size)
+    # T1_zoom = resize(T1, (64,64,64))
 
-    T1_zoom = rescale(T1, 0.5)
-
+    label_zoom = resize(label, zoom_size, anti_aliasing=False) * 1e5
+    # print(label_zoom)
+    # ------------------------ label thresholding part ------------------------ #
+    th = 2
+    label_zoom[np.where(label_zoom < th)] = 0
+    label_zoom[np.where(label_zoom > th)] = 1
 
     # T1_zoom = np.kron(T1, np.ones(scale_array))
     # label_zoom = np.kron(label, np.ones(scale_array))
     # print(np.shape(label_zoom))
-    print(np.shape(T1_zoom))
-    # save_nifti_file(label_zoom, itk_T1, base_dir, 'label_zoom.nii.gz')
-    # save_nifti_file(T1_zoom, itk_T1, base_dir, 'T1_zoom.nii.gz')
+    # print(np.shape(T1_zoom))
+    save_nifti_file(label_zoom, itk_T1, base_dir, '10016344_label_zoom.nii.gz')
+    save_nifti_file(T1_zoom, itk_T1, base_dir, '10016344_T1_zoom.nii.gz')
+    # save_nifti_file(T1_zoom, itk_T1, base_dir, 'T1_zoom_64.nii.gz')
 
     # np.swapaxes(x, 0, 1)
     # lac = lacunarity(data)
