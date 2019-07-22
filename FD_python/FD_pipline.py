@@ -11,7 +11,7 @@ dir_path =  "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/Meningioma_External v
 file_list = os.listdir(dir_path)
 print(len(file_list))
 
-fd_result_file = "../fd_result/EWHA_FD_result_20190719_rescale.txt"
+fd_result_file = "../fd_result/EWHA_FD_result_20190721.txt"
 fd = open(fd_result_file, 'a+t')
 fd.write('box counting fractal dimension.\n')
 
@@ -36,8 +36,12 @@ for i, name in enumerate(sorted(file_list)):
     # print()
     file_path = os.path.join(dir_path, name)
     data, header = nrrd.read(file_path)
-    rescaled_data = rescale_threshold_3D(data, (256,256,256))
-    data = rescaled_data
+
+    # ----------- recaling part -------------- #s
+    # rescaled_data = rescale_threshold_3D(data, (256,256,256))
+    # data = rescaled_data
+
+
     # print(subj_name, np.shape(data))
     # print(str(np.shape(data)))
 

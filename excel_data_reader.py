@@ -807,7 +807,7 @@ def EWHA_CSV_reader():
         # print(list(fdim))
         print()
     fd.close()
-    # --------------------- csv file read --------------------- #
+    # ===================== csv file read ===================== #
     data_f, label_f  = [],[]
     subj_list_csv = []
     subj_list_no_csv = []
@@ -887,12 +887,13 @@ def EWHA_CSV_reader():
 
     print('subjects with CSV files : ', len(subj_list_csv), subj_list_csv)
     print('subjects with no CSV files : ', len(subj_list_no_csv), subj_list_no_csv)
-    return data_f, label_f
+    return subj_list_csv, data_f, label_f
 
 if __name__ == '__main__':
     # EWHA_excel_datareader()
     # EWHA_external_datareader()
     # check_features()
-    data, label = EWHA_CSV_reader()
+    subj_list, data, label = EWHA_CSV_reader()
     print(label)
     print('final class count : ',len(label), np.sum(label), len(label) - np.sum(label))
+    whole_set = split_data_by_fold(data, label, 6)
