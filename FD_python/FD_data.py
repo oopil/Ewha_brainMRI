@@ -122,7 +122,7 @@ def FD_merge_dataloader():
     # print(train_x.shape, train_y.shape, test_x.shape, test_y.shape)
     return tr_x, tr_y, tst_x, tst_y
 
-def FD_dataloader(xl_path, sheet_name):
+def FD_dataloader(xl_path, sheet_name, result_file_path='../fd_result/fd_result_file.txt'):
     xl = openpyxl.load_workbook(xl_path, read_only=True)
     ws = xl[sheet_name]
     data_excel = []
@@ -141,15 +141,17 @@ def FD_dataloader(xl_path, sheet_name):
     print(np.shape(low_subj_list))
     print(np.shape(high_subj_list))
     print(type(high_subj_list))
-    result_file_name = './fd_result/fd_result_file.txt'
-    fd = open(result_file_name, 'r')
+    # result_file_path = '../fd_result/fd_result_file.txt'
+    # result_file_path = '../fd_result/SINCHON_FD_result_20190723.txt'
+    fd = open(result_file_path, 'r')
     contents = fd.readlines()[1:]
     # print(contents)
 
     fd_list, name_list = [], []
-    for e in contents:
+    for e in sorted(contents):
         subj_name = e.split('/')[0]
         fd = e.split('/')[1].replace('\n', '').split(',')
+        # do not include subject if there is same subject name already
         if subj_name in name_list:
             continue
         fd_list.append([subj_name, fd])
@@ -158,35 +160,45 @@ def FD_dataloader(xl_path, sheet_name):
             print(contents.index(e))
 
     l_c, h_c, max_c = 0, 0, 200
+    high_subj_list_f, low_subj_list_f = [], []
+
     for i, e in enumerate(fd_list):
         sample = e
         subj_name = int(e[0])
+        # print(subj_name)
         n = np.array(sample[1]).astype(np.float32)
         length = len(n)
         r = np.array([2 ** i for i in range(0, length)]).astype(np.float32)
         n_grad = np.gradient(np.log(n))
         r_grad = np.gradient(np.log(r))
         dim = np.divide(n_grad, r_grad) * (-1)
-        print(len(dim), end='/')
+        # print(len(dim), end='/')
         if subj_name in low_subj_list and l_c < max_c:
-            print('low list')
+            # print('low list')
             # low_fdim.append(length)
             low_fdim.append(dim[:9])
-            plt.plot(np.log(r), dim, '-bo')
+            # plt.plot(np.log(r), dim, '-bo')
             l_c += 1
+            low_subj_list_f.append(subj_name)
+
         elif subj_name in high_subj_list and h_c < max_c:
-            print('high list')
+            # print('high list')
             # high_fdim.append(length)
             high_fdim.append(dim[:9])
-            plt.plot(np.log(r), dim, '-ro')
+            # plt.plot(np.log(r), dim, '-ro')
             h_c += 1
+            high_subj_list_f.append(subj_name)
+
+    # print(high_subj_list_f)
+    # print(low_subj_list_f)
+    # assert False
     label_high = [1 for _ in range(h_c)]
     label_low = [0 for _ in range(l_c)]
     print()
     print(h_c,l_c) # 30 and 95
     # print(label_high)
     # print(label_low)
-    return high_fdim, low_fdim, label_high, label_low
+    return high_fdim, low_fdim, label_high, label_low, high_subj_list_f, low_subj_list_f
 
 def FD_dataloader_save(xl_path, sheet_name):
     xl = openpyxl.load_workbook(xl_path, read_only=True)
@@ -246,6 +258,7 @@ def FD_dataloader_save(xl_path, sheet_name):
             high_fdim.append(dim[:9])
             plt.plot(np.log(r), dim, '-ro')
             h_c += 1
+
     label_high = [1 for _ in range(h_c)]
     label_low = [0 for _ in range(l_c)]
     print()
@@ -333,7 +346,7 @@ def Lac_dataloader_save():
     print(tTestResult)
     return high_fdim+low_fdim, label_high+label_low
 
-def Lac_dataloader(xl_path, sheet_name):
+def Lac_dataloader(xl_path, sheet_name, result_file_path = '../fd_result/Lac_result_v2.txt'):
     xl = openpyxl.load_workbook(xl_path, read_only=True)
     ws = xl[sheet_name]  # 'Sheet1 for test excel file
     low_fdim, high_fdim, data_excel = [], [] , []
@@ -353,8 +366,8 @@ def Lac_dataloader(xl_path, sheet_name):
     print(np.shape(high_subj_list))
     print(type(high_subj_list))
 
-    result_file_name = './fd_result/Lac_result_v2.txt' # Lac_result_v2.txt
-    fd = open(result_file_name, 'r')
+    # result_file_path = '../fd_result/Lac_result_v2.txt' # Lac_result_v2.txt
+    fd = open(result_file_path, 'r')
     contents = fd.readlines()[1:]
     fd_list, name_list = [], []
     for e in contents:
@@ -385,12 +398,14 @@ def Lac_dataloader(xl_path, sheet_name):
     # assert False
     fd_list = np.array(fd_list)
     l_c, h_c, max_c = 0, 0, 200
+    high_subj_list_f, low_subj_list_f = [], []
+
     for i, e in enumerate(fd_list):
         sample = e
         subj_name = int(e[0])
         n = np.array(sample[1])[:5].astype(np.float32)
         # n = np.ones_like(n) / n
-        # n = np.log(n)
+        n = np.log(n)
 
         for k in n:
             if str(k)=='nan':
@@ -402,10 +417,12 @@ def Lac_dataloader(xl_path, sheet_name):
         if subj_name in low_subj_list and l_c < max_c:
             # print('low list')
             low_fdim.append(n)
+            low_subj_list_f.append(subj_name)
             l_c += 1
         elif subj_name in high_subj_list and h_c < max_c:
             # print('high list')
             high_fdim.append(n)
+            high_subj_list_f.append(subj_name)
             h_c += 1
 
     label_high = [1 for _ in range(h_c)]
@@ -413,28 +430,42 @@ def Lac_dataloader(xl_path, sheet_name):
     # plt.show()
     print()
     print(h_c,l_c)
-    return high_fdim, low_fdim, label_high, label_low
+    return high_fdim, low_fdim, label_high, label_low, high_subj_list_f, low_subj_list_f
 
 
 if __name__ == "__main__":
-    xl_test = '/home/soopil/Desktop/Dataset/brain_ewha/Test_Meningioma_20180508.xlsx'
-    xl_train = '/home/soopil/Desktop/Dataset/brain_ewha/Train_Meningioma_20180508.xlsx'
+    xl_test = '/home/soopil/Desktop/Dataset/brain_ewha_early/Test_Meningioma_20180508.xlsx'
+    xl_train = '/home/soopil/Desktop/Dataset/brain_ewha_early/Train_Meningioma_20180508.xlsx'
     # FD_dataloader(xl_train,'20171108_New_N4ITK corrected')
-    FD_merge_dataloader()
-    assert False
-    tr_high_fdim, tr_low_fdim, tr_label_high, tr_label_low = Lac_dataloader(xl_train,'20171108_New_N4ITK corrected')
-    tst_high_fdim, tst_low_fdim, tst_label_high, tst_label_low = Lac_dataloader(xl_test,'Sheet1')
+    # FD_merge_dataloader()
+    # assert False
+    tr_high_fdim, tr_low_fdim, tr_label_high, tr_label_low = Lac_dataloader(xl_train,'20171108_New_N4ITK corrected','../fd_result/Lac_result_v2.txt')
+    tst_high_fdim, tst_low_fdim, tst_label_high, tst_label_low = Lac_dataloader(xl_test,'Sheet1','../fd_result/Lac_result_v2.txt')
+    # tr_high_fdim, tr_low_fdim, tr_label_high, tr_label_low, high_subj_list_f, low_subj_list_f = FD_dataloader(xl_train,'20171108_New_N4ITK corrected','../fd_result/fd_result_file.txt')
+    # tst_high_fdim, tst_low_fdim, tst_label_high, tst_label_low, high_subj_list_f, low_subj_list_f = FD_dataloader(xl_test,'Sheet1','../fd_result/fd_result_file.txt')
+
     train_x = tr_high_fdim + tr_low_fdim
     train_y = tr_label_high + tr_label_low
     test_x =  tst_high_fdim + tst_low_fdim
     test_y =  tst_label_high + tst_label_low
-    # print(np.shape(data), np.shape(label))
-    # print(np.shape(data), np.shape(label))
+
+    data = train_x + test_x
+    label = train_y + test_y
+
+    print(np.shape(data), np.shape(label))
+    print(np.shape(data), np.shape(label))
+    # assert False
     high_fd = tr_high_fdim + tst_high_fdim
     low_fd = tr_low_fdim + tst_low_fdim
     print(np.shape(high_fd),np.shape(low_fd))
     tTestResult = stats.ttest_ind(high_fd, low_fd)
     print(tTestResult)
+    print('p value : ',tTestResult[1])
+    # for fd in high_fd:
+    #     print(fd[:6])
+    # print()
+    # for fd in low_fd:
+    #     print(fd[:6])
 
     # FD_dataloader(xl_train,'20171108_New_N4ITK corrected')
 

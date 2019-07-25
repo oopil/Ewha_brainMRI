@@ -30,38 +30,33 @@ def visualize(train_x, train_y):
     )
     sns.pairplot(data, hue='class')
 
-def check_result(model, train_x, train_y, test_x, test_y) -> list:
-    Pred = model.predict(train_x)
-    print('label\t:', train_y)
-    print('predict :', Pred)
-    total_num = len(train_y)
+def check_result(model, tr_x, tr_y, tst_x, tst_y) -> list:
+    Pred = model.predict(tr_x)
+    total_num = len(tr_y)
     correct_answer = 0
     for i in range(total_num):
-        if train_y[i] == Pred[i]:
+        if tr_y[i] == Pred[i]:
             correct_answer += 1
-    train_accur = correct_answer * 100 / total_num
-    # print('the probability is {}'.format(train_accur))
+    tr_accur = correct_answer * 100 / total_num
+    # print('the probability is {}'.format(tr_accur))
 
-    Pred = model.predict(test_x)
-    print('label\t:', test_y)
-    print('predict :', Pred)
-    total_num = len(test_y)
+    Pred = model.predict(tst_x)
+    total_num = len(tst_y)
     correct_answer = 0
     for i in range(total_num):
-        if test_y[i] == Pred[i]:
+        if tst_y[i] == Pred[i]:
             correct_answer += 1
     # print('the probability is {}'.format(test_accur))
 
-    test_accur = correct_answer * 100 / total_num
-    print('the train accuracy is {}'.format(train_accur))
-    print('the test accuracy is {}'.format(test_accur))
-
-    # print(test_y, Pred)
-    print(confusion_matrix(test_y, Pred))
-    print(classification_report(test_y, Pred, target_names=['low','high'])) # str type
-    print(accuracy_score(test_y, Pred))
-
-    return [train_accur, test_accur]
+    tst_accur = correct_answer * 100 / total_num
+    print('the train accuracy is {}'.format(tr_accur))
+    print('the test accuracy is {}'.format(tst_accur))
+    report = classification_report(tst_y, Pred, target_names=['low','high'], output_dict=True)
+    print(classification_report(tst_y, Pred, target_names=['low','high'], output_dict=False)) # str type
+    # print(tst_y, Pred)
+    # print(confusion_matrix(tst_y, Pred))
+    # print(accuracy_score(tst_y, Pred))
+    return [tr_accur, tst_accur], report
 
 def voting_classifier(train_x, train_y, test_x, test_y):
     rf = RandomForestClassifier(n_estimators=2000, random_state=0)

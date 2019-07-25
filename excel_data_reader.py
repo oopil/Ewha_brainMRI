@@ -324,29 +324,29 @@ def split_data_by_fold(data, label, fold_num):
 
     whole_set = []
     for fold_index in range(fold_num):
-        train_data, train_label, test_data, test_label = [], [], [], []
+        tr_x, tr_y, tst_x, tst_y = [], [], [], []
         for i, one_label in enumerate(separate_data):
             if fold_index == fold_num - 1:
-                train_data = train_data + one_label[:test_count[i] * fold_index]
-                train_label = train_label + separate_label[i][:test_count[i] * fold_index]
-                test_data = test_data + one_label[test_count[i] * fold_index:]
-                test_label = test_label + separate_label[i][test_count[i] * fold_index:]
+                tr_x = tr_x + one_label[:test_count[i] * fold_index]
+                tr_y = tr_y + separate_label[i][:test_count[i] * fold_index]
+                tst_x = tst_x + one_label[test_count[i] * fold_index:]
+                tst_y = tst_y + separate_label[i][test_count[i] * fold_index:]
                 pass
             else:
-                train_data = train_data + one_label[:test_count[i] * fold_index] + one_label[test_count[i] * (
+                tr_x = tr_x + one_label[:test_count[i] * fold_index] + one_label[test_count[i] * (
                             fold_index + 1):]
-                train_label = train_label + separate_label[i][:test_count[i] * fold_index] + separate_label[i][
+                tr_y = tr_y + separate_label[i][:test_count[i] * fold_index] + separate_label[i][
                                                                                              test_count[i] * (
                                                                                                          fold_index + 1):]
-                test_data = test_data + one_label[test_count[i] * fold_index:test_count[i] * (fold_index + 1)]
-                test_label = test_label + separate_label[i][
+                tst_x = tst_x + one_label[test_count[i] * fold_index:test_count[i] * (fold_index + 1)]
+                tst_y = tst_y + separate_label[i][
                                           test_count[i] * fold_index:test_count[i] * (fold_index + 1)]
-        print(len(train_label) + len(test_label), len(train_label), len(test_label))
-        train_data = np.array(train_data)
-        test_data = np.array(test_data)
-        train_label = np.array(train_label)
-        test_label = np.array(test_label)
-        whole_set.append([train_data, train_label, test_data, test_label])
+        print(len(tr_y) + len(tst_y), len(tr_y), len(tst_y))
+        tr_x = np.array(tr_x)
+        tst_x = np.array(tst_x)
+        tr_y = np.array(tr_y)
+        tst_y = np.array(tst_y)
+        whole_set.append([tr_x, tr_y, tst_x, tst_y])
     return whole_set
 
 def normalize_col(X_, axis=0):
@@ -744,7 +744,6 @@ def check_features():
         print('{:30} | {:30}'.format(a,b) )
 
 def EWHA_CSV_reader():
-    is_FD_set = False
     # --------------------- excel file read --------------------- #
     base_folder_path = "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/0_Fwd_ MENINGIOMA 추가 자료 1_190711"
     external_path = os.path.join(base_folder_path,'Training set_Sinchon_Meningioma.xlsx')
@@ -769,8 +768,9 @@ def EWHA_CSV_reader():
 
     # --------------------- Fractal dimention result file read --------------------- #
     result_dpath = '/home/soopil/Desktop/github/Ewha_brainMRI/fd_result/'
-    result_fname = 'SINCHON_FD_result_20190718.txt'
+    # result_fname = 'SINCHON_FD_result_20190718.txt'
     # result_fname = 'SINCHON_FD_result_20190719_rescale.txt'
+    result_fname = 'SINCHON_FD_result_20190723.txt' # original dataset
     result_fpath = os.path.join(result_dpath, result_fname)
 
     fd = open(result_fpath)
@@ -795,7 +795,7 @@ def EWHA_CSV_reader():
         subj = split[0]
         bx_count = split[2].split(',')
         lac = split[3].split(',')
-        lac = list(np.array(lac).astype(np.float32)) # need certain normalization or other processes
+        lac = list(np.array(lac).astype(np.float32))
         fdim = list(FD(bx_count))
         print(fdim+lac)
         assert len(fdim) == 10 and len(lac) == 9
@@ -807,6 +807,22 @@ def EWHA_CSV_reader():
         # print(list(fdim))
         print()
     fd.close()
+    print(len(subj_list_fd))
+    # assert False
+    # need certain normalization or other processes
+    # ===================== normalize FD features ===================== #
+    is_norm = False
+    if is_norm:
+        # normalize_col()
+        data_fd = np.array(data_fd)
+        maxi = np.amax(data_fd[:,:10])
+        mini = np.amin(data_fd[:,:10])
+        data_fd[:,:10] = (data_fd[:,:10] - mini) / maxi
+        print(maxi, mini)
+        # for e in data_fd:
+        #     print(e)
+        # assert False
+
     # ===================== csv file read ===================== #
     data_f, label_f  = [],[]
     subj_list_csv = []
@@ -828,7 +844,128 @@ def EWHA_CSV_reader():
         T1C = str(subj)+'_T1C.csv'
         T2 = str(subj)+'_T2.csv'
 
-        if (T1C in csv_file_list) and (T2 in csv_file_list) and (str(subj) in subj_list_fd):
+        if (str(subj) not in subj_list_csv) and (str(subj) in subj_list_fd) or (subj in subj_list_fd):
+            # sex features label
+            is_FD_set = True #False
+            # features = sex + list(features_T1C) + list(features_T2)
+            features = []
+            if is_FD_set:
+                index_fd = subj_list_fd.index(str(subj))
+                fd = list(data_fd[index_fd][:10]) #10 is fd and 9 is LAC
+                features = features + fd
+
+            # print(features)
+            subj_list_csv.append(subj)
+            data_f.append(features)
+            label_f.append(label)
+        else:
+            subj_list_no_csv.append(subj)
+
+    print('subjects with CSV files : ', len(subj_list_csv), subj_list_csv)
+    print('subjects with no CSV files : ', len(subj_list_no_csv), subj_list_no_csv)
+    return subj_list_csv, data_f, label_f
+
+def EWHA_CSV_reader_save():
+    # --------------------- excel file read --------------------- #
+    base_folder_path = "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/0_Fwd_ MENINGIOMA 추가 자료 1_190711"
+    external_path = os.path.join(base_folder_path,'Training set_Sinchon_Meningioma.xlsx')
+    xl = openpyxl.load_workbook(external_path, read_only=True)
+    ws = xl['20171108_New_N4ITK corrected']
+    data_excel = []
+    for row in ws.rows:
+        line = []
+        for cell in row:
+            line.append(cell.value)
+        data_excel.append(line)
+
+    data_excel = np.array(data_excel)
+    subj_list_excel= data_excel[1:,0]
+    label_list = np.squeeze(data_excel[1:, 5:5+1])
+    sex_list = np.squeeze(data_excel[1:, 107:107+1])
+    print(len(subj_list_excel),subj_list_excel)
+    print(data_excel[0])
+    print(label_list)
+    print(sex_list)
+    print('instance number of each class : ',len(np.where(label_list == 1)[0]),len(np.where(label_list == 0)[0]))
+
+    # --------------------- Fractal dimention result file read --------------------- #
+    result_dpath = '/home/soopil/Desktop/github/Ewha_brainMRI/fd_result/'
+    # result_fname = 'SINCHON_FD_result_20190718.txt'
+    # result_fname = 'SINCHON_FD_result_20190719_rescale.txt'
+    result_fname = 'SINCHON_FD_result_20190723.txt' # original dataset
+    result_fpath = os.path.join(result_dpath, result_fname)
+
+    fd = open(result_fpath)
+    lines = fd.readlines()
+    print(lines)
+
+    def FD(box_count):
+        box_count = np.array(box_count).astype(np.float32)
+        length = len(box_count)
+        r = np.array([2 ** i for i in range(0, length)]).astype(np.float32)
+        n_grad = np.gradient(np.log(box_count))
+        r_grad = np.gradient(np.log(r))
+        return (np.divide(n_grad, r_grad) * (-1))
+
+    subj_list_fd, data_fd = [],[]
+
+    for line in lines:
+
+        if line == 'box counting fractal dimension.\n':
+            continue
+        split = line.split('/')
+        subj = split[0]
+        bx_count = split[2].split(',')
+        lac = split[3].split(',')
+        lac = list(np.array(lac).astype(np.float32))
+        fdim = list(FD(bx_count))
+        print(fdim+lac)
+        assert len(fdim) == 10 and len(lac) == 9
+        subj_list_fd.append(subj)
+        data_fd.append(fdim+lac)
+        # print(subj, bx_count, lac)
+        # print(len(bx_count), len(lac))
+        # print(list(FD(np.flip(lac)))) # ???? let me try
+        # print(list(fdim))
+        print()
+    fd.close()
+
+    # need certain normalization or other processes
+    # ===================== normalize FD features ===================== #
+    is_norm = False
+    if is_norm:
+        # normalize_col()
+        data_fd = np.array(data_fd)
+        maxi = np.amax(data_fd[:,:10])
+        mini = np.amin(data_fd[:,:10])
+        data_fd[:,:10] = (data_fd[:,:10] - mini) / maxi
+        print(maxi, mini)
+        # for e in data_fd:
+        #     print(e)
+        # assert False
+
+    # ===================== csv file read ===================== #
+    data_f, label_f  = [],[]
+    subj_list_csv = []
+    subj_list_no_csv = []
+    csv_dir_path = os.path.join(base_folder_path, 'CSV')
+    csv_file_list = os.listdir(csv_dir_path)
+    print('total csv file number : ',len(csv_file_list))
+    print(csv_file_list)
+
+    for i, subj in enumerate(subj_list_excel):
+        label, sex = label_list[i], sex_list[i]
+
+        if sex == 'M':
+            sex = [0.]
+        else:
+            sex = [1.]
+
+        # print(subj, label, sex)
+        T1C = str(subj)+'_T1C.csv'
+        T2 = str(subj)+'_T2.csv'
+
+        if (str(subj) in subj_list_fd) and (T1C in csv_file_list) and (T2 in csv_file_list):
             '''
             only use files with mask, T1C csv, T2C csv
             need to normalize features from T1C and T2 here
@@ -871,11 +1008,12 @@ def EWHA_CSV_reader():
                 print('detect nan number in T2 features : ', subj)
 
             # sex features label
-            features = sex + list(features_T1C) + list(features_T2)
-
+            is_FD_set = True #False
+            # features = sex + list(features_T1C) + list(features_T2)
+            features = []
             if is_FD_set:
                 index_fd = subj_list_fd.index(str(subj))
-                fd = data_fd[index_fd]
+                fd = list(data_fd[index_fd][:10]) #10 is fd and 9 is LAC
                 features = features + fd
 
             # print(features)
@@ -889,11 +1027,159 @@ def EWHA_CSV_reader():
     print('subjects with no CSV files : ', len(subj_list_no_csv), subj_list_no_csv)
     return subj_list_csv, data_f, label_f
 
+def read_FD(xl_path, sheet_name):
+    xl = openpyxl.load_workbook(xl_path, read_only=True)
+    ws = xl[sheet_name]
+    data_excel = []
+    for row in ws.rows:
+        line = []
+        for cell in row:
+            line.append(cell.value)
+        data_excel.append(line)
+    data_excel = np.array(data_excel)
+    print(data_excel.shape)
+    subj_list = data_excel[1:, 0]
+    label_list = data_excel[1:, 2]
+    assert len(subj_list) == len(label_list)
+    return subj_list, label_list
+
+def SINCHON_FD_reader():
+    # --------------------- excel file read --------------------- #
+    # xl_test = '/home/soopil/Desktop/Dataset/brain_ewha_early/Test_Meningioma_20180508.xlsx'
+    # xl_train = '/home/soopil/Desktop/Dataset/brain_ewha_early/Train_Meningioma_20180508.xlsx'
+    xl_path = '/home/soopil/Desktop/Dataset/brain_ewha_early/20180508_Entire_Train and Test_Meningioma.xlsx'
+    subj_list_excel, label_list = read_FD(xl_path, '20171108_New_N4ITK corrected')
+    print(len(subj_list_excel))
+    assert len(subj_list_excel) == len(label_list)
+    # assert False
+    # base_folder_path = "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/0_Fwd_ MENINGIOMA 추가 자료 1_190711"
+    # external_path = os.path.join(base_folder_path,'Training set_Sinchon_Meningioma.xlsx')
+    # xl = openpyxl.load_workbook(external_path, read_only=True)
+    # ws = xl['20171108_New_N4ITK corrected']
+    # data_excel = []
+    # for row in ws.rows:
+    #     line = []
+    #     for cell in row:
+    #         line.append(cell.value)
+    #     data_excel.append(line)
+    #
+    # data_excel = np.array(data_excel)
+    # subj_list_excel= data_excel[1:,0]
+    # label_list = np.squeeze(data_excel[1:, 5:5+1])
+    # sex_list = np.squeeze(data_excel[1:, 107:107+1])
+    # print(len(subj_list_excel),subj_list_excel)
+    # print(data_excel[0])
+    # print(label_list)
+    # print(sex_list)
+    # print('instance number of each class : ',len(np.where(label_list == 1)[0]),len(np.where(label_list == 0)[0]))
+
+    # --------------------- Fractal dimention result file read --------------------- #
+    result_dpath = '/home/soopil/Desktop/github/Ewha_brainMRI/fd_result/'
+    # result_fname = 'SINCHON_FD_result_20190718.txt'
+    # result_fname = 'SINCHON_FD_result_20190719_rescale.txt'
+    result_fname = 'SINCHON_FD_result_20190723.txt' # original dataset
+    result_fpath = os.path.join(result_dpath, result_fname)
+
+    fd = open(result_fpath)
+    lines = fd.readlines()
+    print(lines)
+
+    # ===================== read FD features ===================== #
+    def FD(box_count):
+        box_count = np.array(box_count).astype(np.float32)
+        length = len(box_count)
+        r = np.array([2 ** i for i in range(0, length)]).astype(np.float32)
+        n_grad = np.gradient(np.log(box_count))
+        r_grad = np.gradient(np.log(r))
+        return (np.divide(n_grad, r_grad) * (-1))
+
+    subj_list_fd, data_fd = [],[]
+
+    for line in lines:
+
+        if line == 'box counting fractal dimension.\n':
+            continue
+        split = line.split('/')
+        subj = split[0]
+        bx_count = split[2].split(',')
+        lac = split[3].split(',')
+        lac = list(np.array(lac).astype(np.float32))
+        fdim = list(FD(bx_count))
+        print(fdim+lac)
+        assert len(fdim) == 10 and len(lac) == 9
+        subj_list_fd.append(subj)
+        data_fd.append(fdim+lac)
+        # print(subj, bx_count, lac)
+        # print(len(bx_count), len(lac))
+        # print(list(FD(np.flip(lac)))) # ???? let me try
+        # print(list(fdim))
+        print()
+    fd.close()
+
+    # need certain normalization or other processes
+    # ===================== normalize FD features ===================== #
+    is_norm = False
+    if is_norm:
+        # normalize_col()
+        data_fd = np.array(data_fd)
+        maxi = np.amax(data_fd[:,:10])
+        mini = np.amin(data_fd[:,:10])
+        data_fd[:,:10] = (data_fd[:,:10] - mini) / maxi
+        print(maxi, mini)
+        # for e in data_fd:
+        #     print(e)
+        # assert False
+
+    # ===================== merge FD with Excel ===================== #
+    data_f, label_f  = [],[]
+    subj_list_f = []
+    subj_list_no_f = []
+    # csv_dir_path = os.path.join(base_folder_path, 'CSV')
+    # csv_file_list = os.listdir(csv_dir_path)
+    # print('total csv file number : ',len(csv_file_list))
+    # print(csv_file_list)
+
+    for i, subj in enumerate(sorted(subj_list_excel)):
+        # label, sex = label_list[i], sex_list[i]
+        label = label_list[i]
+        # if sex == 'M':
+        #     sex = [0.]
+        # else:
+        #     sex = [1.]
+
+        if (str(subj) in subj_list_fd) or (subj in subj_list_fd):
+            if str(subj) in subj_list_f:
+                continue
+            is_FD_set = True #False
+            features = []
+            if is_FD_set:
+                index_fd = subj_list_fd.index(str(subj))
+                fd = list(data_fd[index_fd][:10]) #10 is fd and 9 is LAC
+                features = features + fd
+
+            # print(features)
+            subj_list_f.append(subj)
+            data_f.append(features)
+            label_f.append(label)
+        else:
+            print(subj)
+            subj_list_no_f.append(subj)
+
+    set_a = set(subj_list_fd) - set(subj_list_excel)
+    set_b = set(subj_list_excel) - set(subj_list_fd)
+    print(len(set_a), set_a)
+    print(len(set_b), set_b)
+    print('fd subjects : ',len(subj_list_fd), len(set(subj_list_fd)), subj_list_fd)
+    print('subjects with fd files : ', len(subj_list_f), subj_list_f)
+    print('subjects with no files : ', len(subj_list_no_f), subj_list_no_f)
+    return subj_list_f, data_f, label_f
+
 if __name__ == '__main__':
     # EWHA_excel_datareader()
     # EWHA_external_datareader()
     # check_features()
-    subj_list, data, label = EWHA_CSV_reader()
+    # subj_list, data, label = EWHA_CSV_reader()
+    subj_list, data, label = SINCHON_FD_reader()
     print(label)
     print('final class count : ',len(label), np.sum(label), len(label) - np.sum(label))
-    whole_set = split_data_by_fold(data, label, 6)
+    whole_set = split_data_by_fold(data, label, 5)
