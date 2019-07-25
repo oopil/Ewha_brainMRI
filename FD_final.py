@@ -21,9 +21,6 @@ xl_train = '/home/soopil/Desktop/Dataset/brain_ewha_early/Train_Meningioma_20180
 tr_high_fdim, tr_low_fdim, tr_label_high, tr_label_low, tr_high_subj, tr_low_subj= FD_dataloader(xl_train,'20171108_New_N4ITK corrected','./fd_result/fd_result_file.txt')
 tst_high_fdim, tst_low_fdim, tst_label_high, tst_label_low, tst_high_subj, tst_low_subj= FD_dataloader(xl_test,'Sheet1','./fd_result/fd_result_file.txt')
 
-print(tr_high_fdim[:5])
-print(tr_high_subj[:5])
-
 train_x = tr_high_fdim + tr_low_fdim
 train_y = tr_label_high + tr_label_low
 test_x =  tst_high_fdim + tst_low_fdim
@@ -34,8 +31,6 @@ label = train_y + test_y
 # 1-2. Lacunarity
 tr_high_lac, tr_low_lac, tr_label_high, tr_label_low, tr_high_subj_lac, tr_low_subj_lac = Lac_dataloader(xl_train,'20171108_New_N4ITK corrected','./fd_result/Lac_result_v2.txt')
 tst_high_lac, tst_low_lac, tst_label_high, tst_label_low, tst_high_subj_lac, tst_low_subj_lac = Lac_dataloader(xl_test,'Sheet1','./fd_result/Lac_result_v2.txt')
-print(tr_high_lac[:5])
-print(tr_high_subj_lac[:5])
 
 train_x_lac = tr_high_lac + tr_low_lac
 train_y_lac = tr_label_high + tr_label_low
@@ -46,11 +41,8 @@ data_lac = train_x_lac + test_x_lac
 label_lac = train_y_lac + test_y_lac
 print(np.shape(data_lac), np.shape(label_lac))
 
-print(tr_high_subj[:5])
-print(tr_high_subj_lac[:5])
-print(len(tr_high_subj))
-print(len(tr_high_subj_lac))
 assert set(tr_high_subj) == set(tr_high_subj_lac)
+assert tr_high_subj == tr_high_subj_lac
 
 # 2. t test
 high_fd = tr_high_fdim + tst_high_fdim
@@ -84,13 +76,13 @@ print(data[0])
 print(data_lac[0])
 # assert False
 
-# this is wrong !!
+# this is wrong !! and it is correct now .. i matched the subject list
 data = np.concatenate([data,data_lac], axis=1)
 print(np.shape(data))
 
 # 3. logistic regression
 n_fold = 5
-whole_set = split_data_by_fold(data[:,:], label, n_fold)
+whole_set = split_data_by_fold(data[:,9:12], label, n_fold)
 results = []
 for i in range(n_fold):
     fold = i
