@@ -1078,9 +1078,9 @@ def SINCHON_FD_reader():
 
     # --------------------- Fractal dimention result file read --------------------- #
     result_dpath = '/home/soopil/Desktop/github/Ewha_brainMRI/fd_result/'
-    # result_fname = 'SINCHON_FD_result_20190718.txt'
+    result_fname = 'SINCHON_FD_result_20190718.txt' # external
     # result_fname = 'SINCHON_FD_result_20190719_rescale.txt'
-    result_fname = 'SINCHON_FD_result_20190723.txt' # original dataset
+    # result_fname = 'SINCHON_FD_result_20190723.txt' # original dataset
     result_fpath = os.path.join(result_dpath, result_fname)
 
     fd = open(result_fpath)
@@ -1215,8 +1215,17 @@ if __name__ == '__main__':
             high.append(data[i])
 
     tTestResult = stats.ttest_ind(low, high)
-    print(tTestResult[0])
-    print(list(tTestResult[1]))
+    # print(tTestResult[0])
+    # print(list(tTestResult[1]))
+
+    print(subj_high[:5])
+    print(subj_low[:5])
+
+    pv = tTestResult[1]
+    for i, v in enumerate(pv):
+        if i == 10:
+            print()
+        print(v)
     print(high)
 
     # subj_list, data, label = SINCHON_FD_reader()
