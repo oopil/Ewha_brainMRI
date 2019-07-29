@@ -1,5 +1,6 @@
 from sklearn.utils import shuffle
 from pandas import get_dummies
+from scipy import stats
 import openpyxl
 import csv
 import os
@@ -1141,7 +1142,8 @@ def SINCHON_FD_reader():
 
     for i, subj in enumerate(sorted(subj_list_excel)):
         # label, sex = label_list[i], sex_list[i]
-        label = label_list[i]
+        label_index = np.where(subj_list_excel == subj)
+        label = label_list[label_index]
         # if sex == 'M':
         #     sex = [0.]
         # else:
@@ -1157,12 +1159,12 @@ def SINCHON_FD_reader():
                 fd = list(data_fd[index_fd][:10]) #10 is fd and 9 is LAC
                 features = features + fd
 
-            # print(features)
+            print(subj, label, features)
             subj_list_f.append(subj)
             data_f.append(features)
             label_f.append(label)
         else:
-            print(subj)
+            # print(subj)
             subj_list_no_f.append(subj)
 
     set_a = set(subj_list_fd) - set(subj_list_excel)
@@ -1180,6 +1182,30 @@ if __name__ == '__main__':
     # check_features()
     # subj_list, data, label = EWHA_CSV_reader()
     subj_list, data, label = SINCHON_FD_reader()
-    print(label)
-    print('final class count : ',len(label), np.sum(label), len(label) - np.sum(label))
-    whole_set = split_data_by_fold(data, label, 5)
+
+    # for e in subj_list:
+    #     print(e)
+    # assert False
+
+    low, high = [], []
+    subj_low, subj_high = [], []
+    for i in range(len(label)):
+        if label[i] == 0:
+            subj_low.append(subj_list[i])
+            low.append(data[i])
+        elif label[i] == 1:
+            subj_high.append(subj_list[i])
+            high.append(data[i])
+
+    for a,b in zip(subj_high, high):
+        print(a, b[:3])
+    # assert False
+    tTestResult = stats.ttest_ind(low, high)
+    print(tTestResult[0])
+    print(list(tTestResult[1]))
+    print(high)
+
+    # subj_list, data, label = SINCHON_FD_reader()
+    # print(label)
+    # print('final class count : ',len(label), np.sum(label), len(label) - np.sum(label))
+    # whole_set = split_data_by_fold(data, label, 5)

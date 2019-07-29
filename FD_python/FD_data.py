@@ -439,10 +439,10 @@ if __name__ == "__main__":
     # FD_dataloader(xl_train,'20171108_New_N4ITK corrected')
     # FD_merge_dataloader()
     # assert False
-    tr_high_fdim, tr_low_fdim, tr_label_high, tr_label_low = Lac_dataloader(xl_train,'20171108_New_N4ITK corrected','../fd_result/Lac_result_v2.txt')
-    tst_high_fdim, tst_low_fdim, tst_label_high, tst_label_low = Lac_dataloader(xl_test,'Sheet1','../fd_result/Lac_result_v2.txt')
-    # tr_high_fdim, tr_low_fdim, tr_label_high, tr_label_low, high_subj_list_f, low_subj_list_f = FD_dataloader(xl_train,'20171108_New_N4ITK corrected','../fd_result/fd_result_file.txt')
-    # tst_high_fdim, tst_low_fdim, tst_label_high, tst_label_low, high_subj_list_f, low_subj_list_f = FD_dataloader(xl_test,'Sheet1','../fd_result/fd_result_file.txt')
+    # tr_high_fdim, tr_low_fdim, tr_label_high, tr_label_low = Lac_dataloader(xl_train,'20171108_New_N4ITK corrected','../fd_result/Lac_result_v2.txt')
+    # tst_high_fdim, tst_low_fdim, tst_label_high, tst_label_low = Lac_dataloader(xl_test,'Sheet1','../fd_result/Lac_result_v2.txt')
+    tr_high_fdim, tr_low_fdim, tr_label_high, tr_label_low, tr_high_subj, tr_low_subj = FD_dataloader(xl_train,'20171108_New_N4ITK corrected','../fd_result/fd_result_file.txt')
+    tst_high_fdim, tst_low_fdim, tst_label_high, tst_label_low, tst_high_subj, tst_low_subj = FD_dataloader(xl_test,'Sheet1','../fd_result/fd_result_file.txt')
 
     train_x = tr_high_fdim + tr_low_fdim
     train_y = tr_label_high + tr_label_low
@@ -457,6 +457,13 @@ if __name__ == "__main__":
     # assert False
     high_fd = tr_high_fdim + tst_high_fdim
     low_fd = tr_low_fdim + tst_low_fdim
+
+    high_subj = tr_high_subj + tst_high_subj
+    low_subj = tr_low_subj + tst_low_subj
+    for a in high_subj:
+        print(a)
+    assert False
+
     print(np.shape(high_fd),np.shape(low_fd))
     tTestResult = stats.ttest_ind(high_fd, low_fd)
     print(tTestResult)
