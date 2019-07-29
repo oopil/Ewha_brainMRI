@@ -1028,7 +1028,7 @@ def EWHA_CSV_reader_save():
     print('subjects with no CSV files : ', len(subj_list_no_csv), subj_list_no_csv)
     return subj_list_csv, data_f, label_f
 
-def read_FD(xl_path, sheet_name):
+def read_xl(xl_path, sheet_name):
     xl = openpyxl.load_workbook(xl_path, read_only=True)
     ws = xl[sheet_name]
     data_excel = []
@@ -1041,6 +1041,7 @@ def read_FD(xl_path, sheet_name):
     print(data_excel.shape)
     subj_list = data_excel[1:, 0]
     label_list = data_excel[1:, 2]
+    print(label_list)
     assert len(subj_list) == len(label_list)
     return subj_list, label_list
 
@@ -1049,12 +1050,13 @@ def SINCHON_FD_reader():
     # xl_test = '/home/soopil/Desktop/Dataset/brain_ewha_early/Test_Meningioma_20180508.xlsx'
     # xl_train = '/home/soopil/Desktop/Dataset/brain_ewha_early/Train_Meningioma_20180508.xlsx'
     xl_path = '/home/soopil/Desktop/Dataset/brain_ewha_early/20180508_Entire_Train and Test_Meningioma.xlsx'
-    subj_list_excel, label_list = read_FD(xl_path, '20171108_New_N4ITK corrected')
+    # base_folder_path = "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/0_Fwd_ MENINGIOMA 추가 자료 1_190711"
+    # xl_path = os.path.join(base_folder_path,'Training set_Sinchon_Meningioma.xlsx')
+
+    subj_list_excel, label_list = read_xl(xl_path, '20171108_New_N4ITK corrected')
     print(len(subj_list_excel))
     assert len(subj_list_excel) == len(label_list)
     # assert False
-    # base_folder_path = "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/0_Fwd_ MENINGIOMA 추가 자료 1_190711"
-    # external_path = os.path.join(base_folder_path,'Training set_Sinchon_Meningioma.xlsx')
     # xl = openpyxl.load_workbook(external_path, read_only=True)
     # ws = xl['20171108_New_N4ITK corrected']
     # data_excel = []
@@ -1106,7 +1108,10 @@ def SINCHON_FD_reader():
         lac = split[3].split(',')
         lac = list(np.array(lac).astype(np.float32))
         fdim = list(FD(bx_count))
-        print(fdim+lac)
+        # lac = list(FD( np.flip(lac)))
+        lac = list(np.log(lac))
+        # print(fdim+lac)
+        # print(lac)
         assert len(fdim) == 10 and len(lac) == 9
         subj_list_fd.append(subj)
         data_fd.append(fdim+lac)
@@ -1114,8 +1119,9 @@ def SINCHON_FD_reader():
         # print(len(bx_count), len(lac))
         # print(list(FD(np.flip(lac)))) # ???? let me try
         # print(list(fdim))
-        print()
     fd.close()
+    # print(len(subj_list_fd),subj_list_fd)
+    # assert False
 
     # need certain normalization or other processes
     # ===================== normalize FD features ===================== #
@@ -1131,10 +1137,15 @@ def SINCHON_FD_reader():
         #     print(e)
         # assert False
 
+        data_fd = np.array(data_fd)
+        maxi = np.amax(data_fd[:, 10:])
+        mini = np.amin(data_fd[:, 10:])
+        data_fd[:, 10:] = (data_fd[:, 10:] - mini) / maxi
+
     # ===================== merge FD with Excel ===================== #
     data_f, label_f  = [],[]
-    subj_list_f = []
-    subj_list_no_f = []
+    subj_list_f, subj_list_no_f, subj_dup  = [], [], []
+
     # csv_dir_path = os.path.join(base_folder_path, 'CSV')
     # csv_file_list = os.listdir(csv_dir_path)
     # print('total csv file number : ',len(csv_file_list))
@@ -1143,26 +1154,31 @@ def SINCHON_FD_reader():
     for i, subj in enumerate(sorted(subj_list_excel)):
         # label, sex = label_list[i], sex_list[i]
         label_index = np.where(subj_list_excel == subj)
-        label = label_list[label_index]
+        label = label_list[label_index][0]
         # if sex == 'M':
         #     sex = [0.]
         # else:
         #     sex = [1.]
 
-        if (str(subj) in subj_list_fd) or (subj in subj_list_fd):
-            if str(subj) in subj_list_f:
+        if (str(subj) in subj_list_fd) :
+            # print(subj)
+            if subj in subj_list_f:
+                subj_dup.append(subj)
                 continue
+
             is_FD_set = True #False
             features = []
+
             if is_FD_set:
                 index_fd = subj_list_fd.index(str(subj))
-                fd = list(data_fd[index_fd][:10]) #10 is fd and 9 is LAC
+                fd = list(data_fd[index_fd][:]) #10 is fd and 9 is LAC
                 features = features + fd
 
-            print(subj, label, features)
+            # print(subj, label, features)
             subj_list_f.append(subj)
             data_f.append(features)
             label_f.append(label)
+
         else:
             # print(subj)
             subj_list_no_f.append(subj)
@@ -1174,6 +1190,7 @@ def SINCHON_FD_reader():
     print('fd subjects : ',len(subj_list_fd), len(set(subj_list_fd)), subj_list_fd)
     print('subjects with fd files : ', len(subj_list_f), subj_list_f)
     print('subjects with no files : ', len(subj_list_no_f), subj_list_no_f)
+    print('duplicated subjects : ', len(subj_dup), subj_dup)
     return subj_list_f, data_f, label_f
 
 if __name__ == '__main__':
@@ -1197,9 +1214,6 @@ if __name__ == '__main__':
             subj_high.append(subj_list[i])
             high.append(data[i])
 
-    for a,b in zip(subj_high, high):
-        print(a, b[:3])
-    # assert False
     tTestResult = stats.ttest_ind(low, high)
     print(tTestResult[0])
     print(list(tTestResult[1]))
@@ -1207,5 +1221,5 @@ if __name__ == '__main__':
 
     # subj_list, data, label = SINCHON_FD_reader()
     # print(label)
-    # print('final class count : ',len(label), np.sum(label), len(label) - np.sum(label))
+    print('final class count : ',len(label), np.sum(label), len(label) - np.sum(label))
     # whole_set = split_data_by_fold(data, label, 5)
