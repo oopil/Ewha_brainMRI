@@ -1078,9 +1078,9 @@ def SINCHON_FD_reader():
 
     # --------------------- Fractal dimention result file read --------------------- #
     result_dpath = '/home/soopil/Desktop/github/Ewha_brainMRI/fd_result/'
-    result_fname = 'SINCHON_FD_result_20190718.txt' # external
+    # result_fname = 'SINCHON_FD_result_20190718.txt' # external
     # result_fname = 'SINCHON_FD_result_20190719_rescale.txt'
-    # result_fname = 'SINCHON_FD_result_20190723.txt' # original dataset
+    result_fname = 'SINCHON_FD_result_20190723.txt' # original dataset
     result_fpath = os.path.join(result_dpath, result_fname)
 
     fd = open(result_fpath)
@@ -1188,9 +1188,32 @@ def SINCHON_FD_reader():
     print(len(set_a), set_a)
     print(len(set_b), set_b)
     print('fd subjects : ',len(subj_list_fd), len(set(subj_list_fd)), subj_list_fd)
-    print('subjects with fd files : ', len(subj_list_f), subj_list_f)
-    print('subjects with no files : ', len(subj_list_no_f), subj_list_no_f)
+    print('excel subjects : ',len(subj_list_excel), len(set(subj_list_excel)), subj_list_excel)
+    print('subjects with fd files : ', len(set(subj_list_f)), set(subj_list_f))
+    print('subjects with no files : ', len(set(subj_list_no_f)), set(subj_list_no_f))
     print('duplicated subjects : ', len(subj_dup), subj_dup)
+
+    print()
+    assert False
+    print(len(subj_list_fd))
+    a,b = [],[]
+    for subj in subj_list_fd:
+        where = np.where(np.array(subj_list_fd) == subj)
+        n_dup = len(where[0])
+        print(where, len(where[0]))
+        # print(type(subj))
+        if int(subj) in subj_list_excel:
+            # print(True)
+            a.append(int(subj))
+            pass
+        else:
+            b.append(int(subj))
+            pass
+            # print(subj)
+            # assert False
+    print(len(a), len(set(a)), a)
+    print(len(b), len(set(b)), b)
+    print()
     return subj_list_f, data_f, label_f
 
 if __name__ == '__main__':

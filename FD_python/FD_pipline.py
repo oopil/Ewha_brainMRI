@@ -46,7 +46,7 @@ dir_path =  "/home/soopil/Desktop/Dataset/brain_ewha_early/Meningioma_only_T1C_m
 file_list = os.listdir(dir_path)
 print(len(file_list))
 
-fd_result_file = "../fd_result/SINCHON_FD_result_20190724_rescale.txt"
+fd_result_file = "../fd_result/SINCHON_FD_result_20190731_orig.txt"
 fd = open(fd_result_file, 'a+t')
 fd.write('box counting fractal dimension.\n')
 
@@ -62,9 +62,10 @@ for i, name in enumerate(sorted(file_list)):
     data, header = nrrd.read(file_path)
 
     # ----------- recaling part -------------- #s
-    rescaled_data = rescale_threshold_3D(data, (256,256,256))
-    data = rescaled_data
-
+    is_rescale = False
+    if is_rescale:
+        rescaled_data = rescale_threshold_3D(data, (256,256,256))
+        data = rescaled_data
 
     # print(subj_name, np.shape(data))
     # print(str(np.shape(data)))
@@ -72,7 +73,7 @@ for i, name in enumerate(sorted(file_list)):
     # implement both box-counting and Lacunarity
     result_FD = box_count_FD(data)
     result_LAC = lacunarity(data)
-    line = subj_name +'/'+str(np.shape(data))+'/'+','.join(str(e) for e in result_FD)+'/'+','.join(str(e) for e in result_LAC)
+    line = subj_name +'/'+name+'/'+str(np.shape(data))+'/'+','.join(str(e) for e in result_FD)+'/'+','.join(str(e) for e in result_LAC)
 
     print(i, line)
     print()
