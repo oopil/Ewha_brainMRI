@@ -38,11 +38,20 @@ fd_csv = open('fd_analysis.csv', 'w', encoding='utf-8', newline='')
 wr = csv.writer(fd_csv)
 fd_box = ['FD{}'.format(i) for i in range(10)]
 lac_box = ['LAC{}'.format(i) for i in range(9)]
-head = ['SubjectID','CE','T1C','T1C_norm','used mask'] + fd_box + lac_box
+head = ['SubjectID','Grade','CE','T1C','T1C_norm','used mask'] + fd_box + lac_box
 wr.writerow(head)
 
 print(type(subj_list_excel[0]), type(mask_name[0]), type(subj_list_fd[0]))
-for i in range(len(subj_list_excel)):
+
+# for a,b in zip(subj_list_excel, label_list):
+#     print(a,b)
+# raise()
+t_dict = {
+    0:'CE',
+    1:'T1C',
+    2:'T1C_norm'
+}
+for subj_xl in sorted(subj_list_excel): #range(len(subj_list_excel)):
     def bool2OX(is_:bool)->str:
         if is_:
             return 'O'
@@ -67,7 +76,10 @@ for i in range(len(subj_list_excel)):
     # T1C_norm = False # 2
     blist = [False, False, False] # CE, T1C, T1C_norm
     fd = [0 for _ in range(19)]
-    subj_xl = subj_list_excel[i]
+    # subj_xl = subj_list_excel[i]
+    ixl = list(subj_list_excel).index(subj_xl)
+    grade = label_list[ixl]
+
     used_mask = ''
     if str(subj_xl) in subj_list_fd:
         print()
@@ -79,7 +91,7 @@ for i in range(len(subj_list_excel)):
 
         ifd = mask_name.index(flist[0])
         fd = data_fd[ifd]
-        used_mask = mask_name[ifd]
+        used_mask = t_dict[type_check(mask_name[ifd])]
         print(ifd, mask_name[ifd])
         print()
 
@@ -87,7 +99,7 @@ for i in range(len(subj_list_excel)):
 
     # fd = data_fd[i]
 
-    l = [int(subj_list_excel[i]), bool2OX(blist[0]), bool2OX(blist[1]), bool2OX(blist[2]), used_mask] + list(fd)
+    l = [int(subj_xl), grade, bool2OX(blist[0]), bool2OX(blist[1]), bool2OX(blist[2]), used_mask] + list(fd)
     print(l)
     wr.writerow(l)
 
