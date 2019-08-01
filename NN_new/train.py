@@ -11,6 +11,7 @@ from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint
 from sklearn.metrics import classification_report
 from excel_data_reader import *
+from data import *
 import os
 import pandas as pd
 import numpy as np
@@ -96,13 +97,19 @@ def parse_args() -> argparse:
     parser.add_argument('--gpu', default='0', type=str)
     return parser.parse_args()
 
+def dataloader(n_fold, i_fold):
+    subj_list, data, label = SINCHON_NN_reader()
+    t_set = split_data_by_fold(data,label, n_fold)
+    return t_set[i_fold]
+
 if __name__ == "__main__":
     args = parse_args()
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
     # -------- Read data ---------#
-    class_num = 2
-    train_x, train_y, test_x, test_y = EWHA_excel_datareader()
+    train_x, train_y, test_x, test_y = dataloader(5,0)
+    print(train_y)
+    assert False
     sampling_option = "SIMPLE"
     train_x, train_y = over_sampling(train_x, train_y, sampling_option)
     # test_x, test_y = valence_class(test_x, test_y, class_num)

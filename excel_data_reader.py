@@ -353,19 +353,11 @@ def split_data_by_fold(data, label, fold_num):
 def normalize_col(X_, axis=0):
     """
     if minimun is negative float, then we should divide with min + max
-    :param X_:
-    :param axis:
-    :return:
     """
     print("normalize step")
-    # print(X_[:2])
-    # print(np.amax(X_[:2],axis=axis))
+    X_ = X_-np.amin(X_,axis=axis)
     assert len(np.amax(X_,axis=axis)) == len(X_[0])
     assert np.all(np.amax(X_,axis=axis) != 0)
-    # print(np.amin(X_,axis=axis)[41])
-    # print(np.amax(X_, axis=axis)[41])
-    # print(((X_-np.amin(X_,axis=axis))/np.amax(X_, axis=axis))[0,41])
-    X_ = X_-np.amin(X_,axis=axis)
     return (X_-np.amin(X_,axis=axis))/np.amax(X_, axis=axis)
 
 def column(matrix, i, num):
@@ -1032,11 +1024,13 @@ def read_xl(xl_path, sheet_name):
     xl = openpyxl.load_workbook(xl_path, read_only=True)
     ws = xl[sheet_name]
     data_excel = []
+
     for row in ws.rows:
         line = []
         for cell in row:
             line.append(cell.value)
         data_excel.append(line)
+
     data_excel = np.array(data_excel)
     print(data_excel.shape)
     subj_list = data_excel[1:, 0]
@@ -1044,6 +1038,46 @@ def read_xl(xl_path, sheet_name):
     print(label_list)
     assert len(subj_list) == len(label_list)
     return subj_list, label_list
+
+def FD(box_count):
+    box_count = np.array(box_count).astype(np.float32)
+    length = len(box_count)
+    r = np.array([2 ** i for i in range(0, length)]).astype(np.float32)
+    n_grad = np.gradient(np.log(box_count))
+    r_grad = np.gradient(np.log(r))
+    return (np.divide(n_grad, r_grad) * (-1))
+
+def read_FD(fpath):
+    fd = open(fpath)
+    lines = fd.readlines()
+    print(lines)
+    # ===================== read FD features ===================== #
+    subj_list_fd, data_fd, fname = [], [],[]
+    for line in lines:
+
+        if line == 'box counting fractal dimension.\n':
+            continue
+        split = line.split('/')
+        subj = split[0]
+        name = split[1]
+        bx_count = split[3].split(',')
+        lac = split[4].split(',')
+        lac = list(np.array(lac).astype(np.float32))
+        fdim = list(FD(bx_count))
+        # lac = list(FD( np.flip(lac)))
+        lac = list(np.log(lac))
+        # print(fdim+lac)
+        # print(lac)
+        assert len(fdim) == 10 and len(lac) == 9
+        subj_list_fd.append(subj)
+        data_fd.append(fdim + lac)
+        fname.append(name)
+        # print(subj, bx_count, lac)
+        # print(len(bx_count), len(lac))
+        # print(list(FD(np.flip(lac)))) # ???? let me try
+        # print(list(fdim))
+    fd.close()
+    return subj_list_fd, data_fd, fname
 
 def SINCHON_FD_reader():
     # --------------------- excel file read --------------------- #
@@ -1080,46 +1114,15 @@ def SINCHON_FD_reader():
     result_dpath = '/home/soopil/Desktop/github/Ewha_brainMRI/fd_result/'
     # result_fname = 'SINCHON_FD_result_20190718.txt' # external
     # result_fname = 'SINCHON_FD_result_20190719_rescale.txt'
-    result_fname = 'SINCHON_FD_result_20190723.txt' # original dataset
+    # result_fname = 'SINCHON_FD_result_20190723.txt' # original dataset
+    result_fname = 'SINCHON_FD_result_20190731_orig.txt'  # original dataset
+
     result_fpath = os.path.join(result_dpath, result_fname)
-
-    fd = open(result_fpath)
-    lines = fd.readlines()
-    print(lines)
-
-    # ===================== read FD features ===================== #
-    def FD(box_count):
-        box_count = np.array(box_count).astype(np.float32)
-        length = len(box_count)
-        r = np.array([2 ** i for i in range(0, length)]).astype(np.float32)
-        n_grad = np.gradient(np.log(box_count))
-        r_grad = np.gradient(np.log(r))
-        return (np.divide(n_grad, r_grad) * (-1))
-
-    subj_list_fd, data_fd = [],[]
-
-    for line in lines:
-
-        if line == 'box counting fractal dimension.\n':
-            continue
-        split = line.split('/')
-        subj = split[0]
-        bx_count = split[2].split(',')
-        lac = split[3].split(',')
-        lac = list(np.array(lac).astype(np.float32))
-        fdim = list(FD(bx_count))
-        # lac = list(FD( np.flip(lac)))
-        lac = list(np.log(lac))
-        # print(fdim+lac)
-        # print(lac)
-        assert len(fdim) == 10 and len(lac) == 9
-        subj_list_fd.append(subj)
-        data_fd.append(fdim+lac)
-        # print(subj, bx_count, lac)
-        # print(len(bx_count), len(lac))
-        # print(list(FD(np.flip(lac)))) # ???? let me try
-        # print(list(fdim))
-    fd.close()
+    subj_list_fd, data_fd, file_name  = read_FD(result_fpath)
+    for a,b in zip(subj_list_fd, data_fd):
+        print(a,b)
+    print(len(subj_list_fd))
+    assert False
     # print(len(subj_list_fd),subj_list_fd)
     # assert False
 
@@ -1155,13 +1158,8 @@ def SINCHON_FD_reader():
         # label, sex = label_list[i], sex_list[i]
         label_index = np.where(subj_list_excel == subj)
         label = label_list[label_index][0]
-        # if sex == 'M':
-        #     sex = [0.]
-        # else:
-        #     sex = [1.]
-
         if (str(subj) in subj_list_fd) :
-            # print(subj)
+
             if subj in subj_list_f:
                 subj_dup.append(subj)
                 continue

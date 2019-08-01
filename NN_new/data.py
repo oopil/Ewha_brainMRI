@@ -10,26 +10,6 @@ import os
 sys.path.append('..')
 from excel_data_reader import *
 
-def read_csv(file_path)->np.array:
-    f = open(file_path, 'r', encoding='utf-8')
-    rdr = csv.reader(f)
-    contents = []
-    for line in rdr:
-        contents.append(line)
-        # print(len(line),line)
-    f.close()
-    return np.array(contents)
-
-def check_nan(l:list)->bool:
-    is_ = False
-    for i, e in enumerate(l):
-        if len(str(e)) == 0:
-            print(i,e,end=' ')
-            is_ = True
-    if is_:
-        print()
-    return is_
-
 def EWHA_excel_datareader():
     base_folder_path = '/home/soopil/Desktop/Dataset/brain_ewha'# desktop setting
     train_path = os.path.join(base_folder_path, 'Train_Meningioma_20180508.xlsx')
@@ -245,7 +225,7 @@ def check_features():
 
         print('{:30} | {:30}'.format(a,b) )
 
-def EWHA_CSV_reader():
+def SINCHON_NN_reader():
     # --------------------- excel file read --------------------- #
     base_folder_path = "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/0_Fwd_ MENINGIOMA 추가 자료 1_190711"
     external_path = os.path.join(base_folder_path,'Training set_Sinchon_Meningioma.xlsx')
@@ -364,14 +344,30 @@ def EWHA_CSV_reader():
             contents = read_csv(csv_path)
 
             # format exception => skip first
-            if subj in [5596598, 8453071]:
+            if subj in []: # 5596598 8453071
                 subj_list_no_csv.append(subj)
                 continue
                 f = open(csv_path, 'r', encoding='utf-8')
                 rdr = csv.reader(f)
                 assert False
 
+            if subj == 5596598:
+                # print(contents)
+                new_contents = []
+                for e in contents:
+                    new_contents.append(e[0].split('\t'))
+                new_contents = np.array(new_contents)
+                contents = new_contents
+
+            elif subj == 8453071: # T2 CSV file is empty
+                # print(contents)
+                continue
+
+            else:
+                pass
+
             # from 38 line Voxel volume
+            # print(contents)
             feature_name = contents[:, 0]
             i_start = np.where(feature_name == 'original')[0][0]
             i_end = np.where(feature_name == 'original')[0][-1]
@@ -398,6 +394,9 @@ def EWHA_CSV_reader():
         else:
             subj_list_no_csv.append(subj)
 
+    # ===================== normalize csv features===================== #
+    data_f = normalize_col(data_f)
+
     print('subjects with CSV files : ', len(subj_list_csv), subj_list_csv)
     print('subjects with no CSV files : ', len(subj_list_no_csv), subj_list_no_csv)
     return subj_list_csv, data_f, label_f
@@ -423,7 +422,7 @@ if __name__ == '__main__':
     # EWHA_excel_datareader()
     # EWHA_external_datareader()
     # check_features()
-    subj_list, data, label = EWHA_CSV_reader()
+    subj_list, data, label = SINCHON_NN_reader()
 
     # for e in subj_list:
     #     print(e)
@@ -448,11 +447,12 @@ if __name__ == '__main__':
 
     pv = tTestResult[1]
     print('t test feature count on pvalue under the 0.05 : ',np.shape(np.where(pv < 0.05)))
-    print(pv)
-    print(np.where(pv < 0.05))
+    print(np.shape(pv))
+    # print(pv)
+    # print(np.where(pv < 0.05))
     # for i, v in enumerate(pv):
     #     print(v)
-    print(high)
+    # print(high)
 
     # subj_list, data, label = SINCHON_NN_reader()
     # print(label)
