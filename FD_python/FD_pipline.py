@@ -43,13 +43,15 @@ def rescale_threshold_3D(array, zoom_size):
 # dir_path =  "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/0_Fwd_ MENINGIOMA 추가 자료 1_190711/MASKS" # SINCHON : internal data set
 # dir_path =  "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/Meningioma_External validation/EWHA/MASKS" # EWHA : external validation set
 # dir_path =  "/home/soopil/Desktop/Dataset/brain_ewha_early/Meningioma_only_T1C_masks" # SINCHON : original internal validation set
-# dir_path =  "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/additional_190801/Missing_masks" # SINCHON : missing mask
-dir_path =  "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/additional_190801/Redrawn masks_30 Pts_for reprodcubility" # SINCHON : Redrawn
+# dir_path =  "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/additional_190802/20190802_additional_meningioma masks" # SINCHON : missing mask
+# dir_path =  "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/additional_190801/Redrawn masks_30 Pts_for reprodcubility" # SINCHON : Redrawn
+
+dir_path =  "/home/soopil/Desktop/Dataset/brain_ewha_early/20190813_masks"
 
 file_list = os.listdir(dir_path)
 print(len(file_list))
 
-fd_result_file = "../fd_result/SINCHON_FD_result_20190801_redrawn.txt"
+fd_result_file = "../fd_result/SINCHON_FD_result_20190813.txt"
 fd = open(fd_result_file, 'a+t')
 fd.write('box counting fractal dimension.\n')
 
