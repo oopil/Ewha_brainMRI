@@ -29,9 +29,11 @@ result_dpath = '/home/soopil/Desktop/github/Ewha_brainMRI/fd_result/'
 # result_fname = 'SINCHON_FD_result_20190719_rescale.txt'
 # result_fname = 'SINCHON_FD_result_20190723.txt' # original dataset
 # result_fname = 'SINCHON_FD_result_20190731_orig.txt' # original dataset
-result_fname = 'SINCHON_FD_result_20190802_orig_missing_add.txt' # original dataset
-# result_fname = 'SINCHON_FD_result_20190801_missing.txt' # original dataset
-# result_fname = 'SINCHON_FD_result_20190801_redrawn.txt' # original dataset
+# result_fname = 'SINCHON_FD_result_20190802_orig_missing_add.txt' # original dataset
+# result_fname = 'SINCHON_FD_result_20190801_missing.txt'
+# result_fname = 'SINCHON_FD_result_20190801_redrawn.txt'
+result_fname = 'SINCHON_FD_result_20190813.txt' # additional dataset from 20190813
+
 result_fpath = os.path.join(result_dpath, result_fname)
 subj_list_fd, data_fd, mask_name = read_FD(result_fpath)
 print(len(subj_list_fd), len(set(subj_list_fd)), subj_list_fd)

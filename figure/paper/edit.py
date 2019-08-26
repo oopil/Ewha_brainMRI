@@ -15,6 +15,7 @@ import SimpleITK as sitk
 import matplotlib.image
 import matplotlib.pyplot as plt
 from PIL import Image
+from skimage.color import label2rgb
 
 def scale_intensity(array):
     """
@@ -29,7 +30,8 @@ def scale_intensity(array):
 
 def box_count(array, bs):
     slide = bs
-    s1, s2 = 560//bs, 560//bs
+    shape = 560
+    s1, s2 = shape//bs, shape//bs
     print(s1, s2, bs)
     box_count = 0
     grid_list = []
@@ -44,7 +46,8 @@ def box_count(array, bs):
 
 def CV_count(array, bs):
     slide = bs
-    s1, s2 = 560//bs, 560//bs
+    shape = 560
+    s1, s2 = shape//bs, shape//bs
     print(s1, s2, bs)
     box_count = 0
     grid_list = []
@@ -64,9 +67,9 @@ def CV_count(array, bs):
 
 def draw_box(grid_list, bs):
     color = 1
-    s1, s2 = 560//bs, 560//bs
     slide = bs
-    grid = np.zeros((560,560))
+    shape = 560
+    grid = np.zeros((shape,shape))
     for coor in grid_list:
         x, y = coor
         # fill the pixels inside the box
@@ -81,9 +84,10 @@ def draw_box(grid_list, bs):
     return grid
 
 def draw_CV(grid_list, cv_list, bs):
-    s1, s2 = 560//bs, 560//bs
     slide = bs
-    cv_grid = np.zeros((560,560))
+    shape = 560
+    s1, s2 = shape//bs, shape//bs
+    cv_grid = np.zeros((shape,shape))
     for i, coor in enumerate(grid_list):
         x, y = coor
         intensity = cv_list[i]
@@ -122,7 +126,14 @@ def visual_lacunarity(image, cv_grid):
         for y in range(s2):
             if cv_grid[x,y] != 0:
                 # image[x,y,:] = image[x,y,:]*cv_grid[x,y]
-                image[x,y,0] = 1*cv_grid[x,y]
+                if cv_grid[x,y] < image[x,y,1]:
+                    image[x, y, 0] = image[x,y,1]
+                else:
+                    image[x,y,0] = 1*cv_grid[x,y]
+                # image[x,y,1] = 0
+                # image[x,y,2] = 0
+                # image[x,y,1] = 1*cv_grid[x,y]
+                # image[x,y,2] = 1*cv_grid[x,y]
     return image
 
 def main():
@@ -149,9 +160,10 @@ def main():
     image = np.flip(image, axis=0)
     image = scale_intensity(image)
 
-    slice_mask = mask[:,:,36]
-    slice_image = image[:,:,36]
-
+    shape = 560
+    slice_mask = mask[:, :, 36]
+    slice_image = image[:, :,36]
+    # mask[40:shape - 40, 40:shape - 40, 36]
     # ----------------------------- edition process for lacunarity-----------------------------  #
     box_size = [2**i for i in range(1,10)]
 
@@ -161,6 +173,13 @@ def main():
     for bs in box_size:
         grid_list, cv_list = CV_count(slice_mask, bs=bs)
         cv_list = scale_intensity(cv_list)
+        # we need to increase the intensity for visualization
+        cv_list = np.sqrt(cv_list)
+        # cv_list = (cv_list+1)/2
+        # for i, cv in enumerate(cv_list):
+        #     if cv < 0.2:
+        #         cv_list[i] = 0
+
         cv_grid = draw_CV(grid_list, cv_list, bs=bs)
         if is_savegrid:
             cv_grid = np.expand_dims(cv_grid, axis=2)
@@ -168,9 +187,13 @@ def main():
             matplotlib.image.imsave('cv_{}.png'.format(bs), cv_grid)
 
         elif is_drawgrid:
+            # drawn_image = label2rgb(cv_grid, slice_image)
             drawn_image = visual_lacunarity(slice_image, cv_grid)
+            drawn_image = drawn_image[40:shape - 40, 40:shape - 40, :]
             matplotlib.image.imsave('image_cv_{}.png'.format(bs), drawn_image)
 
+        # if bs == 8:
+        #     assert False
         # assert False
     raise ()
 
@@ -181,6 +204,7 @@ def main():
     is_drawgrid = True
 
     for bs in box_size:
+        print(bs)
         grid_list = box_count(slice_mask, bs=bs)
         slice_grid = draw_box(grid_list, bs=bs)
         if is_savegrid:
@@ -190,7 +214,9 @@ def main():
 
         elif is_drawgrid:
             drawn_image = visual_boxcount(slice_image, slice_grid)
+            drawn_image = drawn_image[40:shape - 40, 40:shape - 40, :]
             matplotlib.image.imsave('image_grid_{}.png'.format(bs), drawn_image)
+
         # assert False
 
     raise()

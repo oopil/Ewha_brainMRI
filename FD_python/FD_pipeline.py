@@ -46,12 +46,14 @@ def rescale_threshold_3D(array, zoom_size):
 # dir_path =  "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/additional_190802/20190802_additional_meningioma masks" # SINCHON : missing mask
 # dir_path =  "/home/soopil/Desktop/Dataset/EWHA_brain_tumor/additional_190801/Redrawn masks_30 Pts_for reprodcubility" # SINCHON : Redrawn
 
-dir_path =  "/home/soopil/Desktop/Dataset/brain_ewha_early/20190813_masks"
+# dir_path =  "/home/soopil/Desktop/Dataset/brain_ewha_early/20190813_masks"
+dir_path =  "/home/soopil/Desktop/Dataset/brain_ewha_early/20190822_additional_test/FD_test_set_Ewha"
 
 file_list = os.listdir(dir_path)
 print(len(file_list))
 
-fd_result_file = "../fd_result/SINCHON_FD_result_20190813.txt"
+# fd_result_file = "../fd_result/SINCHON_FD_result_20190813.txt"
+fd_result_file = "../fd_result/EWHA_FD_result_20190823.txt"
 fd = open(fd_result_file, 'a+t')
 fd.write('box counting fractal dimension.\n')
 
