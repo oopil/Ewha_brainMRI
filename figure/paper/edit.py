@@ -13,6 +13,7 @@ import nrrd
 import numpy as np
 import SimpleITK as sitk
 import matplotlib.image
+import argparse
 import matplotlib.pyplot as plt
 from PIL import Image
 from skimage.color import label2rgb
@@ -78,8 +79,20 @@ def draw_box(grid_list, bs):
         # draw only boundary pixels
         grid[x*slide : x*slide+bs, y*slide] = color
         grid[x*slide : x*slide+bs, y*slide+bs] = color
-        grid[x*slide, y*slide : y*slide+bs] = color
-        grid[x*slide+bs, y*slide : y*slide+bs] = color
+        grid[x*slide, y*slide : y*slide+bs + 1] = color
+        grid[x*slide+bs, y*slide : y*slide+bs + 1] = color
+
+        #thcik liner
+        grid[x * slide: x * slide + bs + 1, y * slide + 1] = color
+        grid[x * slide: x * slide + bs + 1, y * slide + bs + 1] = color
+        grid[x * slide + 1, y * slide: y * slide + bs + 2] = color
+        grid[x * slide + bs + 1, y * slide: y * slide + bs + 2] = color
+
+        # grid[x * slide + 1, y * slide: y * slide + bs] = color
+        # grid[x * slide + bs + 1, y * slide: y * slide + bs] = color
+        # grid[x * slide - 1, y * slide: y * slide + bs] = color
+        # grid[x * slide + bs - 1, y * slide: y * slide + bs] = color
+
 
     return grid
 
@@ -126,23 +139,39 @@ def visual_lacunarity(image, cv_grid):
         for y in range(s2):
             if cv_grid[x,y] != 0:
                 # image[x,y,:] = image[x,y,:]*cv_grid[x,y]
-                if cv_grid[x,y] < image[x,y,1]:
-                    image[x, y, 0] = image[x,y,1]
-                else:
-                    image[x,y,0] = 1*cv_grid[x,y]
+
+                margin = 1 - image[x,y,0]
+                image[x,y,0] += margin*cv_grid[x,y]
+
+                # if cv_grid[x,y] < image[x,y,1]:
+                #     print(cv_grid[x,y] ,image[x,y,1])
+                #     image[x, y, 0] = image[x,y,1]
+                # else:
+                #     image[x,y,0] = 1*cv_grid[x,y]
+
                 # image[x,y,1] = 0
                 # image[x,y,2] = 0
                 # image[x,y,1] = 1*cv_grid[x,y]
                 # image[x,y,2] = 1*cv_grid[x,y]
     return image
 
-def main():
+def main(subj):
+    samples = {
+        "7395931":["7395931_T1C_norm.nii.gz","7395931_T1C_norm-label.nrrd",43],
+        "1791830":["1791830_T1C_norm.nii.gz","1791830_T1C_norm-label.nrrd",68],
+        "5876859":["5876859_T1C_norm.nii.gz","5876859_T1C_norm-label.nrrd",74]
+    }
     # ----------------------------- image read part -----------------------------  #
     dpath = "/home/soopil/Desktop/github/z_sampleData/ewha_brain_tumor/paper figure"
     flist = os.listdir(dpath)
     print(flist)
-    fname_nrrd = "5745327_CE-label.nrrd"
-    fname_nii = "5745327_T1C_norm.nii.gz"
+
+    sample = samples[subj]
+
+    fname_nii = sample[0]
+    fname_nrrd = sample[1]
+    z_pos = sample[2]-1
+
     file_path = os.path.join(dpath, fname_nrrd)
     mask, header = nrrd.read(file_path)
     mask = np.array(mask)
@@ -158,12 +187,18 @@ def main():
     image = np.swapaxes(image, axis1=0, axis2=2)
     image = np.swapaxes(image, axis1=0, axis2=1)
     image = np.flip(image, axis=0)
+    mask = np.flip(mask, axis=0)
     image = scale_intensity(image)
 
-    shape = 560
-    slice_mask = mask[:, :, 36]
-    slice_image = image[:, :,36]
+    shape = mask.shape[0]
+    slice_mask = mask[:, :, z_pos]
+    slice_image = image[:, :,z_pos]
     # mask[40:shape - 40, 40:shape - 40, 36]
+    slice = image[40:shape - 40, 40:shape - 40, z_pos]
+    slice = scale_intensity(slice)
+    slice = np.expand_dims(slice, axis=2)
+    slice = np.concatenate([slice, slice, slice], axis=2)
+    matplotlib.image.imsave('image.png', slice)
     # ----------------------------- edition process for lacunarity-----------------------------  #
     box_size = [2**i for i in range(1,10)]
 
@@ -195,7 +230,7 @@ def main():
         # if bs == 8:
         #     assert False
         # assert False
-    raise ()
+    # raise ()
 
     # ----------------------------- edition process for box count-----------------------------  #
     box_size = [2**i for i in range(0,10)]
@@ -248,4 +283,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main("7395931")
+    # main("1791830")
+    main("5876859")
